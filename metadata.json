@@ -1,0 +1,6 @@
+{
+  "name": "SQLite Profile & Activity Hub",
+  "description": "Secure user profile storage and real-time activity logging with SQLite database and credentials authentication.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
