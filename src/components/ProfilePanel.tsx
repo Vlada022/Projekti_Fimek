@@ -82,14 +82,16 @@ export default function ProfilePanel({ user, onUpdateProfile }: ProfilePanelProp
           <div className="flex gap-2">
             {!isEditing ? (
               <button
+                id="btn-edit-profile"
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 hover:border-neutral-600 text-white rounded-lg text-sm font-medium transition-all duration-150 inline-flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 hover:border-neutral-600 text-white rounded-lg text-sm font-medium transition-all duration-150 inline-flex items-center gap-2 cursor-pointer test-btn-edit-profile"
               >
                 <Edit3 className="w-4 h-4" />
                 Edit Profile
               </button>
             ) : (
               <button
+                id="btn-cancel-edit-profile"
                 onClick={() => {
                   setIsEditing(false);
                   setFormData({
@@ -101,7 +103,7 @@ export default function ProfilePanel({ user, onUpdateProfile }: ProfilePanelProp
                     favorite_genres: user.favorite_genres || ''
                   });
                 }}
-                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer"
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer test-btn-cancel-edit-profile"
               >
                 Cancel
               </button>
@@ -209,80 +211,87 @@ export default function ProfilePanel({ user, onUpdateProfile }: ProfilePanelProp
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Display Name *</label>
+                <label htmlFor="profile-display-name" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Display Name *</label>
                 <input
+                  id="profile-display-name"
                   type="text"
                   name="display_name"
                   value={formData.display_name}
                   onChange={handleChange}
-                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors test-profile-display-name"
                   placeholder="John Doe"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Email Address</label>
+                <label htmlFor="profile-email" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Email Address</label>
                 <input
+                  id="profile-email"
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors test-profile-email"
                   placeholder="name@email.com"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Location</label>
+                <label htmlFor="profile-location" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Location</label>
                 <input
+                  id="profile-location"
                   type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleChange}
-                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors test-profile-location"
                   placeholder="San Francisco, CA"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Personal Website</label>
+                <label htmlFor="profile-website" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Personal Website</label>
                 <input
+                  id="profile-website"
                   type="text"
                   name="website"
                   value={formData.website}
                   onChange={handleChange}
-                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors test-profile-website"
                   placeholder="https://example.com"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Favorite Movie Genres</label>
+              <label htmlFor="profile-favorite-genres" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Favorite Movie Genres</label>
               <input
+                id="profile-favorite-genres"
                 type="text"
                 name="favorite_genres"
                 value={formData.favorite_genres}
                 onChange={handleChange}
-                className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors"
+                className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors test-profile-favorite-genres"
                 placeholder="Sci-Fi, Crime Noir, Drama (Comma separated)"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Profile Biography</label>
+              <label htmlFor="profile-bio" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Profile Biography</label>
               <textarea
+                id="profile-bio"
                 name="bio"
                 value={formData.bio}
                 onChange={handleChange}
                 rows={3}
-                className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors resize-none"
+                className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors resize-none test-profile-bio"
                 placeholder="Tell us about yourself..."
               />
             </div>
 
             <div className="pt-2 flex justify-end gap-2">
               <button
+                id="btn-discard-profile"
                 type="button"
                 onClick={() => setIsEditing(false)}
                 className="px-4 py-2 bg-neutral-850 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-lg text-sm font-medium transition-colors cursor-pointer"
@@ -290,9 +299,10 @@ export default function ProfilePanel({ user, onUpdateProfile }: ProfilePanelProp
                 Discard
               </button>
               <button
+                id="btn-save-profile-changes"
                 type="submit"
                 disabled={isSaving}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 border border-emerald-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 border border-emerald-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50 test-btn-save-profile"
               >
                 <Save className="w-4 h-4" />
                 {isSaving ? 'Saving...' : 'Save Changes'}

@@ -104,8 +104,9 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-neutral-800 mb-6 bg-neutral-950 p-1.5 rounded-xl">
+        <div role="tablist" className="flex border-b border-neutral-800 mb-6 bg-neutral-950 p-1.5 rounded-xl">
           <button
+            id="tab-signin"
             onClick={() => {
               setActiveTab('signin');
               setErrorMsg(null);
@@ -120,6 +121,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             Sign In
           </button>
           <button
+            id="tab-signup"
             onClick={() => {
               setActiveTab('signup');
               setErrorMsg(null);
@@ -150,30 +152,32 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         {/* Custom Auth Form */}
         <form onSubmit={handleAuthSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Username *</label>
+            <label htmlFor="input-username" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Username *</label>
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-neutral-500">@</span>
               <input
+                id="input-username"
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg pl-8 pr-3 py-2 text-sm outline-none transition-colors"
+                className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg pl-8 pr-3 py-2 text-sm outline-none transition-colors test-input-username"
                 placeholder="username"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Password *</label>
+            <label htmlFor="input-password" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Password *</label>
             <div className="relative">
               <Lock className="w-3.5 h-3.5 absolute left-3 top-3 text-neutral-500" />
               <input
+                id="input-password"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none transition-colors"
+                className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none transition-colors test-input-password"
                 placeholder="••••••••"
               />
             </div>
@@ -182,28 +186,30 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
           {activeTab === 'signup' && (
             <>
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Display Name</label>
+                <label htmlFor="input-display-name" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Display Name</label>
                 <div className="relative">
                   <User className="w-3.5 h-3.5 absolute left-3 top-3 text-neutral-500" />
                   <input
+                    id="input-display-name"
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none transition-colors"
+                    className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none transition-colors test-input-display-name"
                     placeholder="E.g. Elon Musk"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Email Address</label>
+                <label htmlFor="input-email" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Email Address</label>
                 <div className="relative">
                   <Mail className="w-3.5 h-3.5 absolute left-3 top-3 text-neutral-500" />
                   <input
+                    id="input-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none transition-colors"
+                    className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none transition-colors test-input-email"
                     placeholder="name@email.com"
                   />
                 </div>
@@ -212,9 +218,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
           )}
 
           <button
+            id="btn-submit-auth"
             type="submit"
             disabled={isLoading}
-            className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors duration-200 cursor-pointer disabled:opacity-50 mt-2"
+            className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors duration-200 cursor-pointer disabled:opacity-50 mt-2 test-btn-submit"
           >
             <Shield className="w-4 h-4" />
             {isLoading ? 'Verifying SQLite records...' : activeTab === 'signin' ? 'Sign In' : 'Register Account'}
@@ -228,6 +235,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
           </span>
           <div className="grid grid-cols-2 gap-3 text-xs">
             <button
+              id="btn-prefill-admin"
               onClick={() => handlePrefill('admin', 'admin123')}
               className="p-2.5 bg-neutral-950 border border-neutral-800 hover:border-emerald-500/40 rounded-xl text-left transition-all cursor-pointer group"
             >
@@ -235,6 +243,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
               <span className="text-[10px] text-neutral-500 block font-mono mt-0.5">pass: admin123</span>
             </button>
             <button
+              id="btn-prefill-developer"
               onClick={() => handlePrefill('developer', 'devpass')}
               className="p-2.5 bg-neutral-950 border border-neutral-800 hover:border-emerald-500/40 rounded-xl text-left transition-all cursor-pointer group"
             >

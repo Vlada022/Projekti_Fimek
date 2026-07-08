@@ -5,6 +5,20 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the base URL before each test
     await page.goto('/');
+
+    // Wait for the initial loading screen to disappear (resolved state)
+    await Promise.race([
+      page.locator('#btn-prefill-admin').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.locator('#btn-logout').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
+    ]);
+
+    // Self-healing: If a previous test left an active session, click Logout to clean the state
+    const logoutBtn = page.locator('#btn-logout');
+    if (await logoutBtn.isVisible()) {
+      await logoutBtn.click();
+      // Ensure we are back on the login screen
+      await expect(page.locator('h1')).toContainText('Login for Movie Review & Finder');
+    }
   });
 
   test('should display the correct login header and subtitle', async ({ page }) => {
@@ -22,13 +36,13 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     await page.getByPlaceholder('username').fill('nonexistentuser');
     await page.getByPlaceholder('••••••••').fill('wrongpassword');
 
-    // Click Sign In
-    const signInButton = page.getByRole('button', { name: 'Sign In', exact: true });
+    // Click Sign In (submit button of the form)
+    const signInButton = page.locator('form button[type="submit"]');
     await expect(signInButton).toBeVisible();
     await signInButton.click();
 
     // Verify error feedback
-    const errorMessage = page.locator('div:has-text("User does not exist")');
+    const errorMessage = page.locator('div.text-red-300:has-text("User does not exist")');
     await expect(errorMessage).toBeVisible();
   });
 
@@ -37,7 +51,7 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     await expect(page.getByPlaceholder('E.g. Elon Musk')).not.toBeVisible();
 
     // Switch to Create Account
-    const createAccountTab = page.getByRole('button', { name: 'Create Account' });
+    const createAccountTab = page.locator('div[role="tablist"] button').filter({ hasText: 'Create Account' });
     await createAccountTab.click();
 
     // Verify fields for signup appear
@@ -45,22 +59,22 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     await expect(page.getByPlaceholder('name@email.com')).toBeVisible();
 
     // Switch back to Sign In
-    const signInTab = page.getByRole('button', { name: 'Sign In', exact: true });
+    const signInTab = page.locator('div[role="tablist"] button').filter({ hasText: 'Sign In' });
     await signInTab.click();
     await expect(page.getByPlaceholder('E.g. Elon Musk')).not.toBeVisible();
   });
 
   test('should pre-fill sandbox accounts and successfully log in', async ({ page }) => {
     // Click on the administrator sandbox quick-credentials button
-    const adminSandboxButton = page.locator('button:has-text("admin (Admin)")');
+    const adminSandboxButton = page.locator('button:has-text("@admin")');
     await expect(adminSandboxButton).toBeVisible();
     await adminSandboxButton.click();
 
     // Verify that username and password got filled
     await expect(page.getByPlaceholder('username')).toHaveValue('admin');
 
-    // Click Sign In
-    await page.getByRole('button', { name: 'Sign In', exact: true }).click();
+    // Click Sign In submit button
+    await page.locator('form button[type="submit"]').click();
 
     // Verify we have successfully logged in by checking the main header "Movie Review & Finder"
     const dashboardHeader = page.locator('h1:has-text("Movie Review & Finder")');
@@ -75,9 +89,9 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
   });
 
   test('should allow a logged-in user to view the list of movies and profile', async ({ page }) => {
-    // Login
-    await page.locator('button:has-text("admin (Admin)")').click();
-    await page.getByRole('button', { name: 'Sign In', exact: true }).click();
+    // Login using pre-fill
+    await page.locator('button:has-text("@admin")').click();
+    await page.locator('form button[type="submit"]').click();
 
     // Wait for catalog collection view
     await expect(page.locator('text=Catalog Collection')).toBeVisible();
@@ -88,11 +102,47 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     await profileTab.click();
 
     // Verify user profile details are displayed
-    await expect(page.locator('text=Profile Details')).toBeVisible();
-    await expect(page.locator('text=Administrator')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Edit Profile' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Administrator' })).toBeVisible();
 
     // Navigate back to Catalog Collection
     await page.getByRole('button', { name: 'Movie Catalog' }).click();
     await expect(page.locator('text=Catalog Collection')).toBeVisible();
+  });
+
+  test('should support high-precision automation using custom IDs and label bindings', async ({ page }) => {
+    // 1. Sign in using admin prefill
+    await page.locator('#btn-prefill-admin').click();
+    await page.locator('#btn-submit-auth').click();
+
+    // 2. Add a new movie using the ID-equipped fields
+    await page.locator('#btn-add-movie-trigger').click();
+    await page.locator('#movie-title').fill('The Matrix Resurrections');
+    await page.locator('#movie-year').fill('2021');
+    await page.locator('#movie-rating').fill('6.5');
+    await page.locator('#movie-genre').fill('Sci-Fi, Action');
+    await page.locator('#movie-duration').fill('148 min');
+    await page.locator('#movie-director').fill('Lana Wachowski');
+    await page.locator('#movie-cover').fill('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400');
+    await page.locator('#movie-description').fill('Return to the world of two realities...');
+    await page.locator('#btn-movie-submit').click();
+
+    // 3. Search for the movie using the search bar ID
+    await page.locator('#movie-search').fill('Matrix');
+    await expect(page.locator('text=The Matrix Resurrections')).toBeVisible();
+
+    // 4. Navigate to profile and edit user bio using profile IDs
+    await page.locator('#btn-nav-profile').click();
+    await page.locator('#btn-edit-profile').click();
+    await page.locator('#profile-bio').fill('A passionate movie automation testing engineer.');
+    await page.locator('#btn-save-profile-changes').click();
+
+    // 5. Verify edited bio is visible on the profile panel
+    await expect(page.locator('text=A passionate movie automation testing engineer.')).toBeVisible();
+
+    // 6. Navigate back to catalog and verify Matrix is still there
+    await page.locator('#btn-nav-catalog').click();
+    await page.locator('#movie-search').fill('Matrix');
+    await expect(page.locator('text=The Matrix Resurrections')).toBeVisible();
   });
 });

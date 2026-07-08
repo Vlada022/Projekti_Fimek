@@ -76,3 +76,37 @@ Once your Secrets are populated, you are ready to launch!
    ```
 2. Navigate to your repository's **Actions** tab on GitHub to see the progress of the workflow.
 3. Once completed, your new full-stack, highly optimized app will be running live on Google Cloud Run!
+
+---
+
+## 🧪 Step 4: Automated Testing Suite
+
+Your project is configured with two types of automated tests:
+
+### 1. Unit & Integration Tests (Vitest)
+Fast, in-memory testing for databases, core utility business logic, cryptographic functions, and authentication workflows.
+* **To run locally:**
+  ```bash
+  npm run test
+  ```
+* **To run with interactive file-watch mode:**
+  ```bash
+  npm run test:watch
+  ```
+
+### 2. End-to-End Browser Automation (Playwright)
+Real browser E2E automation testing that spins up a Chromium instance, logs into the applet, clicks links, and verifies the UI.
+* **Before running Playwright the first time, install the browser binaries:**
+  ```bash
+  npx playwright install chromium
+  ```
+* **To run headless E2E tests:**
+  ```bash
+  npm run test:e2e
+  ```
+* **To open the interactive Playwright UI Runner:**
+  ```bash
+  npm run test:e2e:ui
+  ```
+
+*Note: Playwright is configured to automatically launch the development server and run the test suite cleanly inside an isolated browser environment.*

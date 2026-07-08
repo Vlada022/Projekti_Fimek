@@ -143,7 +143,7 @@ export default function App() {
           <Database className="w-6 h-6 text-emerald-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>
         <span className="text-xs font-mono text-neutral-400 mt-5 uppercase tracking-widest animate-pulse">
-          Connecting to CineManage SQLite Engine...
+          Connecting to Movie Review SQLite Engine...
         </span>
       </div>
     );
@@ -189,8 +189,9 @@ export default function App() {
             </div>
 
             <button
+              id="btn-logout"
               onClick={handleLogout}
-              className="px-3.5 py-2 bg-neutral-850 hover:bg-neutral-800 border border-neutral-800 text-neutral-400 hover:text-white rounded-xl transition-all duration-150 flex items-center gap-2 text-xs font-medium cursor-pointer"
+              className="px-3.5 py-2 bg-neutral-850 hover:bg-neutral-800 border border-neutral-800 text-neutral-400 hover:text-white rounded-xl transition-all duration-150 flex items-center gap-2 text-xs font-medium cursor-pointer test-btn-logout"
             >
               <LogOut className="w-4 h-4 text-neutral-500" />
               <span>Logout</span>
@@ -204,8 +205,9 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex gap-2 p-1 bg-neutral-950 rounded-xl border border-neutral-850/60">
             <button
+              id="btn-nav-catalog"
               onClick={() => { setActiveTab('catalog'); setIsFormOpen(false); }}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer test-btn-nav-catalog ${
                 activeTab === 'catalog'
                   ? 'bg-neutral-800 text-white shadow-sm border border-neutral-700/50'
                   : 'text-neutral-400 hover:text-white'
@@ -215,8 +217,9 @@ export default function App() {
               Movie Catalog
             </button>
             <button
+              id="btn-nav-profile"
               onClick={() => { setActiveTab('profile'); setIsFormOpen(false); }}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer test-btn-nav-profile ${
                 activeTab === 'profile'
                   ? 'bg-neutral-800 text-white shadow-sm border border-neutral-700/50'
                   : 'text-neutral-400 hover:text-white'
@@ -229,8 +232,9 @@ export default function App() {
 
           {activeTab === 'catalog' && !isFormOpen && (
             <button
+              id="btn-add-movie-trigger"
               onClick={() => { setMovieToEdit(null); setIsFormOpen(true); }}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-lg"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-lg test-btn-add-movie-trigger"
             >
               <PlusCircle className="w-4 h-4" />
               Add Movie
@@ -251,8 +255,9 @@ export default function App() {
             >
               <div className="mb-4">
                 <button
+                  id="btn-back-to-catalog"
                   onClick={() => { setIsFormOpen(false); setMovieToEdit(null); }}
-                  className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer font-mono"
+                  className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer font-mono test-btn-back-to-catalog"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Back to Catalog
@@ -316,7 +321,7 @@ export default function App() {
       <footer className="bg-neutral-900 border-t border-neutral-850 py-4 px-6 text-center text-xs text-neutral-500 font-mono flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-          <span>SQLite CineManage Ledger: Online (WAL journal mode)</span>
+          <span>SQLite Movie Review Ledger: Online (WAL journal mode)</span>
         </div>
         <div className="text-[11px] text-neutral-600">
           <span>Note: You can export your full workspace with database and files via the settings menu at any time.</span>

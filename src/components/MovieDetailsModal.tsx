@@ -12,17 +12,19 @@ export default function MovieDetailsModal({ movie, onClose }: MovieDetailsModalP
   if (!movie) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div id="movie-details-modal-overlay" className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
       <motion.div
+        id="movie-details-modal"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-2xl bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl relative"
+        className="w-full max-w-2xl bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl relative test-movie-details-modal"
       >
         {/* Close Button */}
         <button
+          id="btn-close-modal"
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 bg-neutral-950/60 hover:bg-neutral-950 text-neutral-400 hover:text-white rounded-full border border-neutral-800/40 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 z-10 p-2 bg-neutral-950/60 hover:bg-neutral-950 text-neutral-400 hover:text-white rounded-full border border-neutral-800/40 transition-colors cursor-pointer test-btn-close-modal"
         >
           <X className="w-4 h-4" />
         </button>
@@ -49,7 +51,7 @@ export default function MovieDetailsModal({ movie, onClose }: MovieDetailsModalP
                 </span>
                 <span className="text-[10px] text-neutral-500 font-mono">SQLite ID: {movie.id}</span>
               </div>
-              <h2 className="text-2xl font-bold text-white tracking-tight leading-tight">
+              <h2 id="movie-details-title" className="text-2xl font-bold text-white tracking-tight leading-tight test-movie-details-title">
                 {movie.title}
               </h2>
               <p className="text-xs text-neutral-400 font-medium mt-1">Directed by <span className="text-neutral-200">{movie.director}</span></p>

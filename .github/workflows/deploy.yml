@@ -34,8 +34,14 @@ jobs:
       - name: Run Linter & Type Check
         run: npm run lint
 
-      - name: Run Automation Tests
+      - name: Run Automation Tests (Vitest)
         run: npm run test
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E Automation Tests (Playwright)
+        run: npm run test:e2e
 
   build-and-deploy:
     name: Build & Deploy to Cloud Run

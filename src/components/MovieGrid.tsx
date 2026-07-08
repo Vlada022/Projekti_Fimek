@@ -30,25 +30,28 @@ export default function MovieGrid({ movies, currentUser, onEditMovie, onDeleteMo
   return (
     <div className="space-y-6">
       {/* Search and Filters panel */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div id="search-filters-panel" className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-80">
+          <label htmlFor="movie-search" className="sr-only">Search movies, directors, plot</label>
           <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3.5" />
           <input
+            id="movie-search"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search films, directors, plot..."
-            className="w-full bg-neutral-950 border border-neutral-850 text-white rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-emerald-500 transition-colors"
+            className="w-full bg-neutral-950 border border-neutral-850 text-white rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-emerald-500 transition-colors test-movie-search"
           />
         </div>
 
         {/* Genre filters */}
-        <div className="flex flex-wrap gap-1.5 self-start md:self-auto overflow-x-auto max-w-full pb-1 md:pb-0">
+        <div id="genre-filters-list" className="flex flex-wrap gap-1.5 self-start md:self-auto overflow-x-auto max-w-full pb-1 md:pb-0">
           {allGenres.slice(0, 7).map(genre => (
             <button
+              id={`btn-genre-${genre.toLowerCase().replace(/\s+/g, '-')}`}
               key={genre}
               onClick={() => setSelectedGenre(genre)}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap test-genre-btn ${
                 selectedGenre === genre
                   ? 'bg-emerald-600 text-white shadow'
                   : 'bg-neutral-950 text-neutral-400 hover:text-white border border-neutral-850'
@@ -61,7 +64,7 @@ export default function MovieGrid({ movies, currentUser, onEditMovie, onDeleteMo
       </div>
 
       {/* Grid List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div id="movies-catalog-grid" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence mode="popLayout">
           {filteredMovies.map((movie) => (
             <motion.div
@@ -71,7 +74,8 @@ export default function MovieGrid({ movies, currentUser, onEditMovie, onDeleteMo
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
               key={movie.id}
-              className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-neutral-750 transition-all flex flex-col group relative"
+              id={`movie-card-${movie.id}`}
+              className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-neutral-750 transition-all flex flex-col group relative test-movie-card"
             >
               {/* Cover Image Container */}
               <div className="relative h-48 bg-neutral-950 overflow-hidden">
@@ -94,8 +98,9 @@ export default function MovieGrid({ movies, currentUser, onEditMovie, onDeleteMo
                 {/* Cover Hover Action Panel */}
                 <div className="absolute inset-0 bg-neutral-950/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
                   <button
+                    id={`btn-view-movie-${movie.id}`}
                     onClick={() => onSelectMovie(movie)}
-                    className="p-2.5 bg-neutral-900/90 border border-neutral-800 rounded-xl hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition-all text-neutral-200 cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
+                    className="p-2.5 bg-neutral-900/90 border border-neutral-800 rounded-xl hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition-all text-neutral-200 cursor-pointer flex items-center gap-1.5 text-xs font-semibold test-btn-view-movie"
                   >
                     <Eye className="w-4 h-4" />
                     <span>View Detail</span>
@@ -108,8 +113,9 @@ export default function MovieGrid({ movies, currentUser, onEditMovie, onDeleteMo
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <h4
+                      id={`movie-title-click-${movie.id}`}
                       onClick={() => onSelectMovie(movie)}
-                      className="text-base font-bold text-white tracking-tight hover:text-emerald-400 transition-colors cursor-pointer line-clamp-1"
+                      className="text-base font-bold text-white tracking-tight hover:text-emerald-400 transition-colors cursor-pointer line-clamp-1 test-movie-title-header"
                     >
                       {movie.title}
                     </h4>
@@ -143,19 +149,21 @@ export default function MovieGrid({ movies, currentUser, onEditMovie, onDeleteMo
                   {/* Actions (Allowed for instant testing) */}
                   <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
+                      id={`btn-edit-movie-${movie.id}`}
                       onClick={() => onEditMovie(movie)}
-                      className="p-1.5 bg-neutral-850 hover:bg-neutral-800 border border-neutral-800 rounded-lg text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
+                      className="p-1.5 bg-neutral-850 hover:bg-neutral-800 border border-neutral-800 rounded-lg text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer test-btn-edit-movie"
                       title="Edit Film Metadata"
                     >
                       <Edit2 className="w-3 h-3" />
                     </button>
                     <button
+                      id={`btn-delete-movie-${movie.id}`}
                       onClick={() => {
                         if (confirm(`Are you sure you want to delete film "${movie.title}"?`)) {
                           onDeleteMovie(movie.id);
                         }
                       }}
-                      className="p-1.5 bg-neutral-850 hover:bg-red-950 hover:border-red-900/30 rounded-lg text-neutral-400 hover:text-red-400 transition-colors cursor-pointer"
+                      className="p-1.5 bg-neutral-850 hover:bg-red-950 hover:border-red-900/30 rounded-lg text-neutral-400 hover:text-red-400 transition-colors cursor-pointer test-btn-delete-movie"
                       title="Delete Film"
                     >
                       <Trash2 className="w-3 h-3" />
