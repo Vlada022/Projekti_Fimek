@@ -1,0 +1,29 @@
+# Use the official Microsoft Playwright image as the base
+# This contains Node.js, npm, and all system libraries for Chromium, Firefox, and WebKit pre-installed
+FROM mcr.microsoft.com/playwright:v1.49.0-noble
+
+# Set working directory inside the container
+WORKDIR /app
+
+# Expose the application port
+EXPOSE 3000
+
+# Set pipeline-friendly environment variables
+ENV PORT=3000
+ENV NODE_ENV=test
+ENV CI=true
+
+# Copy dependency configurations first to maximize Docker cache utilization
+COPY package*.json ./
+
+# Install dependencies (including devDependencies needed for build and test)
+RUN npm ci
+
+# Copy the rest of the workspace files
+COPY . .
+
+# Ensure our custom pipeline script has executable permissions
+RUN chmod +x /app/run-pipeline.sh
+
+# Run the automated CI/CD pipeline script by default when the container is run
+CMD ["/app/run-pipeline.sh"]
