@@ -129,7 +129,7 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
 
     // 3. Search for the movie using the search bar ID
     await page.locator('#movie-search').fill('Matrix');
-    await expect(page.locator('text=The Matrix Resurrections')).toBeVisible();
+    await expect(page.locator('text=The Matrix Resurrections').first()).toBeVisible();
 
     // 4. Navigate to profile and edit user bio using profile IDs
     await page.locator('#btn-nav-profile').click();
@@ -143,6 +143,6 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     // 6. Navigate back to catalog and verify Matrix is still there
     await page.locator('#btn-nav-catalog').click();
     await page.locator('#movie-search').fill('Matrix');
-    await expect(page.locator('text=The Matrix Resurrections')).toBeVisible();
+    await expect(page.locator('text=The Matrix Resurrections').first()).toBeVisible();
   });
 });
