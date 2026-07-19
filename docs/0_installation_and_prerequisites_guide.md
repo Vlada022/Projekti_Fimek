@@ -6,18 +6,55 @@ This document provides a comprehensive, step-by-step onboarding guide to set up 
 ---
 
 ## Table of Contents
-1. [Prerequisites Overview](#1-prerequisites-overview)
-2. [Step 1: Installing Git](#step-1-installing-git)
-3. [Step 2: Installing Node.js & npm (Using Version Managers)](#step-2-installing-nodejs--npm-using-version-managers)
-4. [Step 3: Cloning the Code Repository](#step-3-cloning-the-code-repository)
-5. [Step 4: Installing Project Dependencies](#step-4-installing-project-dependencies)
-6. [Step 5: Installing Playwright & Browser Dependencies](#step-5-installing-playwright--browser-dependencies)
-7. [Step 6: Docker Installation & Troubleshooting (Fixing "Docker is not recognized")](#step-6-docker-installation--troubleshooting-fixing-docker-is-not-recognized)
-8. [Step 7: Running the Application Locally](#step-7-running-the-application-locally)
+1. [VS Code Onboarding: Should I Use Docker?](#vs-code-onboarding-should-i-use-docker)
+2. [Prerequisites Overview](#2-prerequisites-overview)
+3. [Step 1: Installing Git](#step-1-installing-git)
+4. [Step 2: Installing Node.js & npm (Using Version Managers)](#step-2-installing-nodejs--npm-using-version-managers)
+5. [Step 3: Cloning the Code Repository](#step-3-cloning-the-code-repository)
+6. [Step 4: Installing Project Dependencies](#step-4-installing-project-dependencies)
+7. [Step 5: Installing Playwright & Browser Dependencies](#step-5-installing-playwright--browser-dependencies)
+8. [Step 6: Docker Installation & Troubleshooting (Fixing "Docker is not recognized")](#step-6-docker-installation--troubleshooting-fixing-docker-is-not-recognized)
+9. [Step 7: Running the Application Locally](#step-7-running-the-application-locally)
 
 ---
 
-## 1. Prerequisites Overview
+## 1. VS Code Onboarding: Should I Use Docker?
+
+Once you have cloned the project and opened the folder inside **Visual Studio Code (VS Code)**, you can run the application using either **Docker** or **Native Node.js**. Here is how to decide which to use:
+
+### Option A: Using Docker (Recommended for instant, zero-configuration setup)
+*   **Why use it**: You do **not** need to install Node.js, npm, or Playwright on your physical computer. Docker handles all dependency installation inside an isolated virtual container automatically!
+*   **Requirements**: Docker Desktop must be installed and running (see [Step 6](#step-6-docker-installation--troubleshooting-fixing-docker-is-not-recognized)).
+*   **VS Code Command**:
+    1. Open the integrated terminal in VS Code (`Ctrl + `` or `Cmd + ``).
+    2. Run the single-command docker compose to build and launch the app:
+       ```bash
+       docker compose up app --build
+       ```
+    3. Open your browser and go to `http://localhost:3000`.
+
+### Option B: Native Run (Recommended for active code development)
+*   **Why use it**: Fastest feedback loop when editing files.
+*   **Requirements**: You must install Node.js, npm, and Playwright browsers on your host PC (see Steps 1-5).
+*   **VS Code Command**:
+    1. Open the integrated terminal in VS Code (`Ctrl + `` or `Cmd + ``).
+    2. Install all dependencies:
+       ```bash
+       npm install
+       ```
+    3. Download Playwright browser binaries:
+       ```bash
+       npx playwright install chromium
+       ```
+    4. Start the application:
+       ```bash
+       npm run dev
+       ```
+    5. Open your browser and go to `http://localhost:3000`.
+
+---
+
+## 2. Prerequisites Overview
 
 To run and test the Movie Review & Finder application locally, your machine needs:
 *   **Git**: Version control to fetch and synchronize code.

@@ -132,7 +132,7 @@ To make automation scripts resilient against future visual redesigns, we impleme
 
 ### Playwright Test Cases Explained (`e2e/auth-and-movies.spec.ts`)
 
-Our browser spec suite evaluates 6 robust operational flows:
+Our browser spec suite evaluates 8 robust operational flows:
 
 1.  **should display the correct login header**: Verifies text formatting of the login screen to ensure assets are correctly rendered.
 2.  **should fail authentication on incorrect credentials**: Submits mock login payloads and asserts error banners are displayed to users.
@@ -140,6 +140,8 @@ Our browser spec suite evaluates 6 robust operational flows:
 4.  **should pre-fill sandbox accounts**: Verifies developers can use pre-fill shortcuts to instantly login and bypass manual form entries.
 5.  **should allow logged-in catalog actions**: Authenticates, redirects to the main catalogue interface, asserts the navigation is successful, and views profile panels.
 6.  **should support high-precision automation with custom IDs**: Adds a new movie via the creation modal, searches the list for the newly created movie, edits user bio data, and verifies state persistence across view switches.
+7.  **should add a movie, verify it exists, delete it, and assert it is removed**: Performs a complete CRUD lifecycle validation—creates a film, verifies its presence, deletes it via the UI (handling confirmation dialogs), and asserts its complete absence.
+8.  **should validate invalid entries on the add movie form**: Asserts form client-side constraints on rating range boundaries (e.g. max=10) and required title checks to prevent invalid database state submissions.
 
 ---
 

@@ -145,4 +145,64 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     await page.locator('#movie-search').fill('Matrix');
     await expect(page.locator('text=The Matrix Resurrections').first()).toBeVisible();
   });
+
+  test('should add a movie, verify it exists, delete it, and assert it is removed', async ({ page }) => {
+    // 1. Sign in
+    await page.locator('#btn-prefill-admin').click();
+    await page.locator('#btn-submit-auth').click();
+
+    // 2. Add "Interstellar Remastered"
+    await page.locator('#btn-add-movie-trigger').click();
+    await page.locator('#movie-title').fill('Interstellar Remastered');
+    await page.locator('#movie-year').fill('2014');
+    await page.locator('#movie-rating').fill('8.6');
+    await page.locator('#movie-genre').fill('Sci-Fi, Adventure');
+    await page.locator('#movie-duration').fill('169 min');
+    await page.locator('#movie-director').fill('Christopher Nolan');
+    await page.locator('#movie-cover').fill('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400');
+    await page.locator('#movie-description').fill('Mankind was born on Earth. It was never meant to die here.');
+    await page.locator('#btn-movie-submit').click();
+
+    // 3. Search and verify it exists
+    await page.locator('#movie-search').fill('Interstellar');
+    const movieCard = page.locator('.test-movie-card').filter({ hasText: 'Interstellar Remastered' });
+    await expect(movieCard).toBeVisible();
+
+    // 4. Setup browser alert dialog handler to accept deletion confirm dialog
+    page.once('dialog', async dialog => {
+      expect(dialog.message()).toContain('Are you sure you want to delete film "Interstellar Remastered"?');
+      await dialog.accept();
+    });
+
+    // 5. Delete the movie
+    const deleteBtn = movieCard.locator('.test-btn-delete-movie');
+    await deleteBtn.click();
+
+    // 6. Assert it is gone
+    await expect(movieCard).not.toBeVisible();
+  });
+
+  test('should validate invalid entries on the add movie form', async ({ page }) => {
+    // 1. Sign in
+    await page.locator('#btn-prefill-admin').click();
+    await page.locator('#btn-submit-auth').click();
+
+    // 2. Open the add movie tab
+    await page.locator('#btn-add-movie-trigger').click();
+
+    // 3. Test rating too high validation (rating max = 10)
+    await page.locator('#movie-title').fill('Temp Title');
+    await page.locator('#movie-rating').fill('15'); // Exceeds max="10"
+
+    // Evaluate HTML5 input validation
+    const isRatingValid = await page.locator('#movie-rating').evaluate((el: HTMLInputElement) => el.checkValidity());
+    expect(isRatingValid).toBe(false);
+
+    // 4. Test required title validation (title cannot be empty)
+    await page.locator('#movie-title').fill(''); // Empty
+
+    // Evaluate HTML5 input validation for title
+    const isTitleValid = await page.locator('#movie-title').evaluate((el: HTMLInputElement) => el.checkValidity());
+    expect(isTitleValid).toBe(false);
+  });
 });
