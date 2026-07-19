@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Service A: Standard Full-Stack Production Server
+  app:
+    container_name: movie-app-prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+
+  # Service B: Complete Automated CI/CD Testing Pipeline (Vite + SQLite + Vitest + Playwright)
+  pipeline:
+    container_name: movie-app-pipeline
+    build:
+      context: .
+      dockerfile: Dockerfile.cicd
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=test
+      - CI=true
