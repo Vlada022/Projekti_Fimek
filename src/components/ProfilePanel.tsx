@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserProfile } from '../types';
-import { User, Mail, MapPin, Globe, Film, Edit3, Save, ShieldCheck, Github, Clock } from 'lucide-react';
+import { User, Mail, MapPin, Globe, Code, Edit3, Save, ShieldCheck, Github, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface ProfilePanelProps {
@@ -177,11 +177,11 @@ export default function ProfilePanel({ user, onUpdateProfile }: ProfilePanelProp
 
               <div className="flex items-center gap-3 text-neutral-300 text-sm">
                 <div className="p-2 bg-neutral-800/40 border border-neutral-800 rounded-lg text-neutral-400">
-                  <Film className="w-4 h-4" />
+                  <Code className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[11px] text-neutral-500 block uppercase font-mono font-bold tracking-wider">Favorite Genres</span>
-                  <span>{user.favorite_genres || 'Action, Comedy, Drama'}</span>
+                  <span className="text-[11px] text-neutral-500 block uppercase font-mono font-bold tracking-wider">Tech Stack</span>
+                  <span>{user.favorite_genres || 'TypeScript, React, Node.js'}</span>
                 </div>
               </div>
             </div>
@@ -264,7 +264,7 @@ export default function ProfilePanel({ user, onUpdateProfile }: ProfilePanelProp
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="profile-favorite-genres" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Favorite Movie Genres</label>
+              <label htmlFor="profile-favorite-genres" className="text-xs font-mono font-bold text-neutral-400 uppercase tracking-wider block">Tech Stack / Languages</label>
               <input
                 id="profile-favorite-genres"
                 type="text"
@@ -272,7 +272,7 @@ export default function ProfilePanel({ user, onUpdateProfile }: ProfilePanelProp
                 value={formData.favorite_genres}
                 onChange={handleChange}
                 className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 text-white rounded-lg px-3 py-2 text-sm outline-none transition-colors test-profile-favorite-genres"
-                placeholder="Sci-Fi, Crime Noir, Drama (Comma separated)"
+                placeholder="TypeScript, React, Python, C++ (Comma separated)"
               />
             </div>
 

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Movie Review & Finder E2E Automation Tests', () => {
+test.describe('Movie Finder & Review E2E Automation Tests', () => {
   
   test.beforeEach(async ({ page }) => {
     // Navigate to the base URL before each test
@@ -17,14 +17,14 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     if (await logoutBtn.isVisible()) {
       await logoutBtn.click();
       // Ensure we are back on the login screen
-      await expect(page.locator('h1')).toContainText('Login for Movie Review & Finder');
+      await expect(page.locator('h1')).toContainText('Login for Movie Finder & Review');
     }
   });
 
   test('should display the correct login header and subtitle', async ({ page }) => {
-    // Verify header exists and says "Login for Movie Review & Finder"
+    // Verify header exists and says "Login for Movie Finder & Review"
     const header = page.locator('h1');
-    await expect(header).toContainText('Login for Movie Review & Finder');
+    await expect(header).toContainText('Login for Movie Finder & Review');
     
     // Ensure the older "SQLite Profile Engine" title and "Secure Database Credentials Hub" are removed
     await expect(page.locator('text=SQLite Profile Engine')).not.toBeVisible();
@@ -76,12 +76,12 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     // Click Sign In submit button
     await page.locator('form button[type="submit"]').click();
 
-    // Verify we have successfully logged in by checking the main header "Movie Review & Finder"
-    const dashboardHeader = page.locator('h1:has-text("Movie Review & Finder")');
+    // Verify we have successfully logged in by checking the main header "Movie Finder & Review"
+    const dashboardHeader = page.locator('h1:has-text("Movie Finder & Review")');
     await expect(dashboardHeader).toBeVisible();
 
-    // Verify that "Catalog Collection" section is present
-    await expect(page.locator('text=Catalog Collection')).toBeVisible();
+    // Verify that "Movie Finder & Review Database" section is present
+    await expect(page.locator('text=Movie Finder & Review Database')).toBeVisible();
 
     // Verify that the obsolete header "CineManage" and subtitle are removed
     await expect(page.locator('text=CineManage')).not.toBeVisible();
@@ -94,10 +94,10 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     await page.locator('form button[type="submit"]').click();
 
     // Wait for catalog collection view
-    await expect(page.locator('text=Catalog Collection')).toBeVisible();
+    await expect(page.locator('text=Movie Finder & Review Database')).toBeVisible();
 
     // Navigate to user profile tab
-    const profileTab = page.getByRole('button', { name: 'User Profile' });
+    const profileTab = page.getByRole('button', { name: 'Profile & Logs' });
     await expect(profileTab).toBeVisible();
     await profileTab.click();
 
@@ -106,8 +106,8 @@ test.describe('Movie Review & Finder E2E Automation Tests', () => {
     await expect(page.getByRole('heading', { name: 'Administrator' })).toBeVisible();
 
     // Navigate back to Catalog Collection
-    await page.getByRole('button', { name: 'Movie Catalog' }).click();
-    await expect(page.locator('text=Catalog Collection')).toBeVisible();
+    await page.getByRole('button', { name: 'Movie Finder' }).click();
+    await expect(page.locator('text=Movie Finder & Review Database')).toBeVisible();
   });
 
   test('should support high-precision automation using custom IDs and label bindings', async ({ page }) => {

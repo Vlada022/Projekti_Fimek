@@ -40,6 +40,18 @@ export interface Movie {
   created_at: string;
 }
 
+export interface CodeAnalysis {
+  id: string;
+  user_id: string | null;
+  title: string;
+  language: string;
+  code: string;
+  score: number;
+  complexity_rating: string;
+  analysis_json: string;
+  created_at: string;
+}
+
 const dbPath = path.join(process.cwd(), 'database.db');
 export const db = new Database(dbPath);
 
@@ -99,6 +111,22 @@ export function initDb() {
       description TEXT,
       created_at TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `).run();
+
+  // Create code_analyses table
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS code_analyses (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      title TEXT,
+      language TEXT,
+      code TEXT,
+      score INTEGER,
+      complexity_rating TEXT,
+      analysis_json TEXT,
+      created_at TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
     )
   `).run();
 
@@ -236,7 +264,7 @@ export function initDb() {
         mov.user_id,
         'admin',
         'MOVIE_SEED',
-        `Pre-seeded classic movie "${mov.title}" into CineManage catalog.`,
+        `Pre-seeded classic movie "${mov.title}" into Movie Finder & Review catalog.`,
         '127.0.0.1'
       );
     }
@@ -461,6 +489,51 @@ export function updateMovie(id: string, updates: {
 
 export function deleteMovie(id: string): boolean {
   const result = db.prepare('DELETE FROM movies WHERE id = ?').run(id);
+  return result.changes > 0;
+}
+
+// Code analyses database helpers
+export function getCodeAnalyses(userId?: string): CodeAnalysis[] {
+  if (userId) {
+    return db.prepare('SELECT * FROM code_analyses WHERE user_id = ? ORDER BY created_at DESC').all(userId) as CodeAnalysis[];
+  }
+  return db.prepare('SELECT * FROM code_analyses ORDER BY created_at DESC').all() as CodeAnalysis[];
+}
+
+export function getCodeAnalysisById(id: string): CodeAnalysis | undefined {
+  return db.prepare('SELECT * FROM code_analyses WHERE id = ?').get(id) as CodeAnalysis | undefined;
+}
+
+export function createCodeAnalysis(analysis: {
+  user_id: string | null;
+  title: string;
+  language: string;
+  code: string;
+  score: number;
+  complexity_rating: string;
+  analysis_json: string;
+}): CodeAnalysis {
+  const id = `scan_${Date.now().toString(36)}`;
+  const now = new Date().toLocaleString();
+  db.prepare(`
+    INSERT INTO code_analyses (id, user_id, title, language, code, score, complexity_rating, analysis_json, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id,
+    analysis.user_id,
+    analysis.title,
+    analysis.language,
+    analysis.code,
+    analysis.score,
+    analysis.complexity_rating,
+    analysis.analysis_json,
+    now
+  );
+  return getCodeAnalysisById(id)!;
+}
+
+export function deleteCodeAnalysis(id: string): boolean {
+  const result = db.prepare('DELETE FROM code_analyses WHERE id = ?').run(id);
   return result.changes > 0;
 }
 

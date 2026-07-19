@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Database, Shield, Lock, User, Mail, ShieldAlert, Key, LogIn, UserPlus } from 'lucide-react';
+import { Film, Shield, Lock, User, Mail, ShieldAlert, Key, LogIn, UserPlus } from 'lucide-react';
 
 interface LoginFormProps {
   onLoginSuccess: () => Promise<void>;
@@ -96,11 +96,14 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         {/* Title */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center p-3 bg-emerald-950/40 border border-emerald-800/40 rounded-xl mb-3 text-emerald-400">
-            <Database className="w-8 h-8" />
+            <Film className="w-8 h-8 animate-pulse" />
           </div>
           <h1 className="font-display text-2xl font-bold text-white tracking-tight">
-            Login for Movie Review & Finder
+            Login for Movie Finder & Review
           </h1>
+          <p className="text-xs text-neutral-400 mt-1.5">
+            Search, review, and catalog your film collections with integrated Code Auditor.
+          </p>
         </div>
 
         {/* Tab Selector */}

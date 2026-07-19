@@ -3,6 +3,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
+import { GoogleGenAI, Type } from '@google/genai';
 import {
   initDb,
   getUserById,
@@ -16,6 +17,10 @@ import {
   createMovie,
   updateMovie,
   deleteMovie,
+  getCodeAnalyses,
+  getCodeAnalysisById,
+  createCodeAnalysis,
+  deleteCodeAnalysis,
   db
 } from './src/db';
 
@@ -232,9 +237,298 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  // Run a real-time AI code analysis
+  app.post('/api/analyze', async (req, res) => {
+    const sessionId = req.cookies.session_id;
+    const { title, language, code, save, aiAssistant } = req.body;
+
+    if (!code || code.trim() === '') {
+      return res.status(400).json({ error: 'Code content is required for analysis.' });
+    }
+
+    const snippetTitle = (title && title.trim()) || 'Untitled Snippet';
+    const snippetLang = (language && language.trim()) || 'javascript';
+    const activeAssistant = aiAssistant === 'codeium' ? 'codeium' : 'gemini';
+    const assistantLabel = activeAssistant === 'codeium' ? 'Codeium Assistant' : 'Gemini 3.5';
+
+    try {
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ error: 'GEMINI_API_KEY is not configured on the server. Please add it to your secrets.' });
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+
+      const systemInstruction = activeAssistant === 'codeium'
+        ? `You are Codeium Assistant, an elite AI coding companion, software architect, and static analysis compiler expert.
+Analyze the provided code using Codeium's high-speed contextual intelligence and evaluate it against three specific linting and static analysis standards:
+1. SonarQube Static Analysis Rules: Identify Bugs (reliability), Vulnerabilities/Security Hotspots (security), and Code Smells (maintainability). Calculate SonarQube ratings (A to E) for Reliability, Security, and Maintainability. Estimate Technical Debt (e.g. "2h 15m" or "30m"). Determine if it passes the Quality Gate (Passed/Failed).
+2. PMD Static Analyzer Rules: Evaluate style, code complexity, error-proneness, performance-prone designs, and multithreading safety. Categorize violations by PMD categories (e.g., Best Practices, Code Style, Design, Error Prone, Performance, Security).
+3. ESLint rules: Scan for syntax issues, unused elements, non-standard constructs, scoping issues, or style warnings (e.g., eqeqeq, no-unused-vars, no-eval).
+
+For every issue found, assign it to one of these three tools: 'SonarQube', 'PMD', or 'ESLint'. Specify the rule ID (e.g., 'S1145', 'eqeqeq', 'UseCollectionIsEmpty') and rule category (e.g., 'Bugs', 'Code Style', 'Design', 'Performance').
+
+Provide a fully refactored, optimized version of the code resolving all violations. Output strict, valid JSON matching the schema. Feel free to inject Codeium-optimized performance design feedback inside the responses.`
+        : `You are an elite software architect, compiler engineer, and an advanced static code analysis system integrating SonarQube, PMD, and ESLint rulesets.
+Analyze the provided code and evaluate it against three specific linting and static analysis standards:
+1. SonarQube Static Analysis Rules: Identify Bugs (reliability), Vulnerabilities/Security Hotspots (security), and Code Smells (maintainability). Calculate SonarQube ratings (A to E) for Reliability, Security, and Maintainability. Estimate Technical Debt (e.g. "2h 15m" or "30m"). Determine if it passes the Quality Gate (Passed/Failed).
+2. PMD Static Analyzer Rules: Evaluate style, code complexity, error-proneness, performance-prone designs, and multithreading safety. Categorize violations by PMD categories (e.g., Best Practices, Code Style, Design, Error Prone, Performance, Security).
+3. ESLint rules: Scan for syntax issues, unused elements, non-standard constructs, scoping issues, or style warnings (e.g., eqeqeq, no-unused-vars, no-eval).
+
+For every issue found, assign it to one of these three tools: 'SonarQube', 'PMD', or 'ESLint'. Specify the rule ID (e.g., 'S1145', 'eqeqeq', 'UseCollectionIsEmpty') and rule category (e.g., 'Bugs', 'Code Style', 'Design', 'Performance').
+
+Provide a fully refactored, optimized version of the code resolving all violations. Output strict, valid JSON matching the schema.`;
+
+      const prompt = `Analyze the following code snippet of language "${snippetLang}":\n\n\`\`\`${snippetLang}\n${code}\n\`\`\``;
+
+      const geminiResponse = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              score: { 
+                type: Type.INTEGER, 
+                description: "Overall quality score from 0 to 100" 
+              },
+              complexityRating: { 
+                type: Type.STRING, 
+                description: "Must be exactly 'Low', 'Medium', or 'High'" 
+              },
+              complexityExplanation: { 
+                type: Type.STRING, 
+                description: "Detailed explanation of cognitive complexity and nesting depth." 
+              },
+              issues: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    type: { 
+                      type: Type.STRING, 
+                      description: "Must be exactly 'duplicate', 'bad-practice', 'complexity', 'syntax-error', 'security-flaw', or 'other'" 
+                    },
+                    line: { 
+                      type: Type.INTEGER, 
+                      description: "Estimated 1-indexed line number where the issue starts" 
+                    },
+                    severity: { 
+                      type: Type.STRING, 
+                      description: "Must be exactly 'low', 'medium', or 'high'" 
+                    },
+                    description: { 
+                      type: Type.STRING, 
+                      description: "Description of the specific code quality issue" 
+                    },
+                    recommendation: { 
+                      type: Type.STRING, 
+                      description: "Clear and actionable refactoring recommendation" 
+                    },
+                    tool: {
+                      type: Type.STRING,
+                      description: "Must be exactly 'SonarQube', 'PMD', or 'ESLint'"
+                    },
+                    ruleId: {
+                      type: Type.STRING,
+                      description: "Specific rule code or ID (e.g., S1145, eqeqeq, UseCollectionIsEmpty)"
+                    },
+                    category: {
+                      type: Type.STRING,
+                      description: "Category of rule (e.g., Bugs, Design, Security, Performance)"
+                    }
+                  },
+                  required: ["type", "line", "severity", "description", "recommendation", "tool", "ruleId", "category"]
+                }
+              },
+              refactoredCode: { 
+                type: Type.STRING, 
+                description: "The complete, optimized, refactored code block with clean formatting" 
+              },
+              performanceSummary: { 
+                type: Type.STRING, 
+                description: "Assessment of Big-O complexity and performance bottlenecks" 
+              },
+              securitySummary: { 
+                type: Type.STRING, 
+                description: "Vulnerability analysis or 'Secure' if no issues found" 
+              },
+              qualityGate: {
+                type: Type.STRING,
+                description: "Must be exactly 'Passed' or 'Failed'"
+              },
+              reliabilityRating: {
+                type: Type.STRING,
+                description: "SonarQube Reliability Rating. Must be exactly 'A', 'B', 'C', 'D', or 'E'"
+              },
+              securityRating: {
+                type: Type.STRING,
+                description: "SonarQube Security Rating. Must be exactly 'A', 'B', 'C', 'D', or 'E'"
+              },
+              maintainabilityRating: {
+                type: Type.STRING,
+                description: "SonarQube Maintainability Rating. Must be exactly 'A', 'B', 'C', 'D', or 'E'"
+              },
+              technicalDebt: {
+                type: Type.STRING,
+                description: "Estimated technical debt (e.g., '1h 30m', '15m')"
+              },
+              bugsCount: {
+                type: Type.INTEGER,
+                description: "Number of SonarQube Bugs detected"
+              },
+              vulnerabilitiesCount: {
+                type: Type.INTEGER,
+                description: "Number of SonarQube Vulnerabilities detected"
+              },
+              codeSmellsCount: {
+                type: Type.INTEGER,
+                description: "Number of SonarQube Code Smells detected"
+              },
+              sonarSummary: {
+                type: Type.STRING,
+                description: "A summary of SonarQube perspective findings"
+              },
+              pmdSummary: {
+                type: Type.STRING,
+                description: "A summary of PMD perspective findings"
+              },
+              eslintSummary: {
+                type: Type.STRING,
+                description: "A summary of ESLint perspective findings"
+              }
+            },
+            required: [
+              "score", "complexityRating", "complexityExplanation", "issues", 
+              "refactoredCode", "performanceSummary", "securitySummary",
+              "qualityGate", "reliabilityRating", "securityRating", "maintainabilityRating",
+              "technicalDebt", "bugsCount", "vulnerabilitiesCount", "codeSmellsCount",
+              "sonarSummary", "pmdSummary", "eslintSummary"
+            ]
+          }
+        }
+      });
+
+      const resultText = geminiResponse.text;
+      if (!resultText) {
+        throw new Error('Empty response from code analysis backend.');
+      }
+
+      const parsedResult = JSON.parse(resultText);
+
+      let savedAnalysis = null;
+      if (save && sessionId) {
+        savedAnalysis = createCodeAnalysis({
+          user_id: sessionId,
+          title: snippetTitle,
+          language: snippetLang,
+          code: code,
+          score: parsedResult.score,
+          complexity_rating: parsedResult.complexityRating,
+          analysis_json: JSON.stringify(parsedResult)
+        });
+
+        const user = getUserById(sessionId);
+        const ip = getClientIp(req);
+        logActivity(
+          sessionId,
+          user ? user.username : 'Guest',
+          'CODE_ANALYZE_SAVE',
+          `Ran and saved code quality audit via ${assistantLabel} for "${snippetTitle}" (${snippetLang}) with score ${parsedResult.score}%`,
+          ip
+        );
+      } else if (sessionId) {
+        const user = getUserById(sessionId);
+        const ip = getClientIp(req);
+        logActivity(
+          sessionId,
+          user ? user.username : 'Guest',
+          'CODE_ANALYZE_RUN',
+          `Ran code quality audit via ${assistantLabel} for "${snippetTitle}" (${snippetLang}) with score ${parsedResult.score}%`,
+          ip
+        );
+      }
+
+      res.json({
+        success: true,
+        result: parsedResult,
+        saved: savedAnalysis
+      });
+
+    } catch (err: any) {
+      console.error('Code Analysis Backend Error:', err);
+      res.status(500).json({ error: err.message || 'An error occurred during code analysis.' });
+    }
+  });
+
+  // Fetch all saved code analysis reports for the authenticated user
+  app.get('/api/analyses', (req, res) => {
+    const sessionId = req.cookies.session_id;
+    if (!sessionId) {
+      return res.status(401).json({ error: 'Unauthorized session' });
+    }
+    const analyses = getCodeAnalyses(sessionId);
+    res.json({ analyses });
+  });
+
+  // Fetch details of a specific saved analysis
+  app.get('/api/analyses/:id', (req, res) => {
+    const sessionId = req.cookies.session_id;
+    if (!sessionId) {
+      return res.status(401).json({ error: 'Unauthorized session' });
+    }
+    const { id } = req.params;
+    const analysis = getCodeAnalysisById(id);
+    if (!analysis) {
+      return res.status(404).json({ error: 'Saved analysis report not found.' });
+    }
+    if (analysis.user_id !== sessionId) {
+      return res.status(403).json({ error: 'Access forbidden.' });
+    }
+    res.json({ analysis });
+  });
+
+  // Delete a saved analysis report
+  app.delete('/api/analyses/:id', (req, res) => {
+    const sessionId = req.cookies.session_id;
+    if (!sessionId) {
+      return res.status(401).json({ error: 'Unauthorized session' });
+    }
+    const { id } = req.params;
+    const analysis = getCodeAnalysisById(id);
+    if (!analysis) {
+      return res.status(404).json({ error: 'Saved analysis report not found.' });
+    }
+    if (analysis.user_id !== sessionId) {
+      return res.status(403).json({ error: 'Access forbidden.' });
+    }
+
+    deleteCodeAnalysis(id);
+
+    const user = getUserById(sessionId);
+    const ip = getClientIp(req);
+    logActivity(
+      sessionId,
+      user ? user.username : 'Guest',
+      'CODE_ANALYZE_DELETE',
+      `Deleted saved analysis report "${analysis.title}" (${analysis.language})`,
+      ip
+    );
+
+    res.json({ success: true });
+  });
+
   // --- MOVIE CRUD API ROUTES ---
 
-  // Get all movies in the CineManage collection
+  // Get all movies in the Movie Finder & Review collection
   app.get('/api/movies', (req, res) => {
     try {
       const movies = getMovies();
@@ -245,7 +539,7 @@ async function startServer() {
     }
   });
 
-  // Create a new movie in the CineManage database
+  // Create a new movie in the Movie Finder & Review database
   app.post('/api/movies', (req, res) => {
     const sessionId = req.cookies.session_id;
     if (!sessionId) {
@@ -375,7 +669,7 @@ async function startServer() {
     }
   });
 
-  // Delete a movie from CineManage
+  // Delete a movie from Movie Finder & Review
   app.delete('/api/movies/:id', (req, res) => {
     const sessionId = req.cookies.session_id;
     if (!sessionId) {

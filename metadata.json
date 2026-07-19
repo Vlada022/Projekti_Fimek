@@ -1,6 +1,6 @@
 {
-  "name": "SQLite Profile & Activity Hub",
-  "description": "Secure user profile storage and real-time activity logging with SQLite database and credentials authentication.",
+  "name": "Movie Finder & Review",
+  "description": "Full-featured movie cataloging and review platform backed by SQLite, integrated with a secure LLM-powered Code Quality Auditor utilizing PMD, ESLint, and SonarQube standard checks.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

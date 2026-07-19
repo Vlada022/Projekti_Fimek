@@ -37,3 +37,47 @@ export interface Movie {
   created_at: string;
 }
 
+export interface CodeIssue {
+  type: 'duplicate' | 'bad-practice' | 'complexity' | 'syntax-error' | 'security-flaw' | 'other';
+  line: number;
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+  recommendation: string;
+  tool: 'SonarQube' | 'PMD' | 'ESLint';
+  ruleId?: string;
+  category?: string;
+}
+
+export interface CodeAnalysisResult {
+  score: number;
+  complexityRating: 'Low' | 'Medium' | 'High';
+  complexityExplanation: string;
+  issues: CodeIssue[];
+  refactoredCode: string;
+  performanceSummary: string;
+  securitySummary: string;
+  qualityGate: 'Passed' | 'Failed';
+  reliabilityRating: 'A' | 'B' | 'C' | 'D' | 'E';
+  securityRating: 'A' | 'B' | 'C' | 'D' | 'E';
+  maintainabilityRating: 'A' | 'B' | 'C' | 'D' | 'E';
+  technicalDebt: string;
+  bugsCount: number;
+  vulnerabilitiesCount: number;
+  codeSmellsCount: number;
+  sonarSummary: string;
+  pmdSummary: string;
+  eslintSummary: string;
+}
+
+export interface CodeAnalysis {
+  id: string;
+  user_id: string | null;
+  title: string;
+  language: string;
+  code: string;
+  score: number;
+  complexity_rating: string;
+  analysis_json: string;
+  created_at: string;
+}
+
