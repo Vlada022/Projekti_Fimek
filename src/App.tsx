@@ -178,7 +178,6 @@ export default function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Analyzer Form & Result State
-  const [aiAssistant, setAiAssistant] = useState<'codeium' | 'gemini'>('codeium');
   const [snippetTitle, setSnippetTitle] = useState('snippet.ts');
   const [snippetLanguage, setSnippetLanguage] = useState('typescript');
   const [snippetCode, setSnippetCode] = useState(PRESET_SNIPPETS[0].code);
@@ -256,6 +255,68 @@ export default function App() {
     setIsFormOpen(true);
   };
 
+  // Shared reusable function to trigger the local static analyzer instantly
+  const runAnalysis = async (title: string, language: string, code: string) => {
+    if (!code || code.trim() === '') {
+      setError('Please provide code content for analysis.');
+      return;
+    }
+
+    setAnalyzing(true);
+    setAnalysisResult(null);
+    setError(null);
+
+    // Dynamic messaging simulation for local static analysis
+    const statuses = [
+      'Tokenizing input code stream...',
+      'Mapping Abstract Syntax Tree (AST) & analyzing structure...',
+      'Running PMD static analyzer design checks...',
+      'Running ESLint code styling rule validation...',
+      'Evaluating SonarQube reliability, security, and complexity score...',
+      'Formatting high-fidelity refactored code output...'
+    ];
+
+    let currentMsgIndex = 0;
+    setStatusMessage(statuses[0]);
+
+    const messageInterval = setInterval(() => {
+      currentMsgIndex = (currentMsgIndex + 1) % statuses.length;
+      setStatusMessage(statuses[currentMsgIndex]);
+    }, 1500);
+
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim() || 'snippet.ts',
+          language,
+          code,
+          save: saveToHistory
+        })
+      });
+
+      clearInterval(messageInterval);
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAnalysisResult(data.result);
+        setActiveResultTab('dashboard');
+        if (saveToHistory) {
+          await fetchAnalyses();
+        }
+        await fetchLogs();
+      } else {
+        setError(data.error || 'Failed to analyze code quality. Please verify server connectivity.');
+      }
+    } catch (err: any) {
+      clearInterval(messageInterval);
+      setError(err.message || 'Server connection timeout. Please check your configurations.');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
   const handleLoadPresetToAnalyzer = (index: number) => {
     if (index >= 0 && index < PRESET_SNIPPETS.length) {
       const preset = PRESET_SNIPPETS[index];
@@ -263,8 +324,9 @@ export default function App() {
       setSnippetLanguage(preset.language);
       setSnippetCode(preset.code);
       setActiveTab('analyzer');
-      setAnalysisResult(null);
       setError(null);
+      // Run analysis instantly on load
+      runAnalysis(preset.title, preset.language, preset.code);
     }
   };
 
@@ -363,72 +425,7 @@ export default function App() {
   // Run Code Analysis
   const handleRunAnalysis = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!snippetCode || snippetCode.trim() === '') {
-      setError('Please provide code content for analysis.');
-      return;
-    }
-
-    setAnalyzing(true);
-    setAnalysisResult(null);
-    setError(null);
-
-    // Dynamic messaging simulation to make load states highly interactive
-    const statuses = aiAssistant === 'codeium' ? [
-      'Tokenizing input code stream via Codeium Cortex...',
-      'Mapping AST and looking for duplicate code blocks...',
-      'Evaluating cognitive complexity algorithms...',
-      'Scanning variables for potential SQL Injection & XSS vulnerabilities...',
-      'Formulating Codeium AI refactoring proposals...',
-      'Optimizing refactored code block architecture...'
-    ] : [
-      'Tokenizing input code stream...',
-      'Mapping AST and looking for duplicate code blocks...',
-      'Evaluating cognitive complexity algorithms...',
-      'Scanning variables for potential SQL Injection & XSS vulnerabilities...',
-      'Formulating Gemini refactoring proposals...',
-      'Optimizing refactored code block architecture...'
-    ];
-
-    let currentMsgIndex = 0;
-    setStatusMessage(statuses[0]);
-
-    const messageInterval = setInterval(() => {
-      currentMsgIndex = (currentMsgIndex + 1) % statuses.length;
-      setStatusMessage(statuses[currentMsgIndex]);
-    }, 1500);
-
-    try {
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: snippetTitle.trim() || 'snippet.ts',
-          language: snippetLanguage,
-          code: snippetCode,
-          save: saveToHistory,
-          aiAssistant: aiAssistant
-        })
-      });
-
-      clearInterval(messageInterval);
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setAnalysisResult(data.result);
-        setActiveResultTab('dashboard');
-        if (saveToHistory) {
-          await fetchAnalyses();
-        }
-        await fetchLogs();
-      } else {
-        setError(data.error || 'Failed to analyze code quality. Please verify server connectivity.');
-      }
-    } catch (err: any) {
-      clearInterval(messageInterval);
-      setError(err.message || 'Server connection timeout. Please check your API key configurations.');
-    } finally {
-      setAnalyzing(false);
-    }
+    runAnalysis(snippetTitle, snippetLanguage, snippetCode);
   };
 
   // Copy refactored code to clipboard
@@ -469,13 +466,13 @@ export default function App() {
     }
   };
 
-  // Populate form with preset snippets
+  // Populate form with preset snippets and run analysis instantly
   const handleLoadPreset = (preset: typeof PRESET_SNIPPETS[0]) => {
     setSnippetTitle(preset.title);
     setSnippetLanguage(preset.language);
     setSnippetCode(preset.code);
-    setAnalysisResult(null);
     setError(null);
+    runAnalysis(preset.title, preset.language, preset.code);
   };
 
   useEffect(() => {
@@ -514,12 +511,8 @@ export default function App() {
   return (
     <div className="min-h-screen bg-neutral-950 text-white font-sans flex flex-col relative overflow-x-hidden">
       {/* Background decoration */}
-      <div className={`absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none transition-all duration-500 ${
-        aiAssistant === 'codeium' ? 'bg-indigo-950/10' : 'bg-emerald-950/5'
-      }`} />
-      <div className={`absolute bottom-10 left-10 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none transition-all duration-500 ${
-        aiAssistant === 'codeium' ? 'bg-violet-950/10' : 'bg-teal-950/5'
-      }`} />
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none transition-all duration-500 bg-indigo-950/10" />
+      <div className="absolute bottom-10 left-10 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none transition-all duration-500 bg-violet-950/10" />
 
       {/* Header */}
       <header className="bg-neutral-900/90 border-b border-neutral-800 px-6 py-4 sticky top-0 z-50 backdrop-blur-md">
@@ -623,10 +616,8 @@ export default function App() {
           </div>
           
           <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-500 font-mono">
-            <Zap className={`w-3.5 h-3.5 transition-all duration-300 ${
-              aiAssistant === 'codeium' ? 'text-indigo-400 animate-pulse' : 'text-yellow-500'
-            }`} />
-            <span>LLM: {aiAssistant === 'codeium' ? 'Codeium Cortex Active' : 'Gemini 3.5 Active'}</span>
+            <Zap className="w-3.5 h-3.5 transition-all duration-300 text-indigo-400 animate-pulse" />
+            <span>Local Compiler: Static Code Auditor Active</span>
           </div>
         </div>
       </div>
@@ -733,7 +724,7 @@ export default function App() {
                 <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-xl space-y-4">
                   <div className="flex items-center justify-between">
                     <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-                      <Terminal className={`w-4 h-4 transition-all duration-300 ${aiAssistant === 'codeium' ? 'text-indigo-400' : 'text-emerald-400'}`} />
+                      <Terminal className="w-4 h-4 transition-all duration-300 text-indigo-400" />
                       Code Audit Editor
                     </h2>
                     
@@ -756,13 +747,9 @@ export default function App() {
                         <button
                           key={index}
                           onClick={() => handleLoadPreset(preset)}
-                          className={`px-2 py-2 bg-neutral-950 border border-neutral-800/80 rounded-xl text-left transition-all cursor-pointer group text-[11px] ${
-                            aiAssistant === 'codeium' ? 'hover:border-indigo-500/40' : 'hover:border-emerald-500/40'
-                          }`}
+                          className="px-2 py-2 bg-neutral-950 border border-neutral-800/80 rounded-xl text-left transition-all cursor-pointer group text-[11px] hover:border-indigo-500/40"
                         >
-                          <span className={`font-semibold block truncate ${
-                            aiAssistant === 'codeium' ? 'text-indigo-400 group-hover:text-indigo-300' : 'text-emerald-400 group-hover:text-emerald-300'
-                          }`}>{preset.name}</span>
+                          <span className="font-semibold block truncate text-indigo-400 group-hover:text-indigo-300">{preset.name}</span>
                           <span className="text-[9px] text-neutral-500 block font-mono uppercase mt-0.5">{preset.language}</span>
                         </button>
                       ))}
@@ -770,22 +757,15 @@ export default function App() {
                   </div>
 
                   <form onSubmit={handleRunAnalysis} className="space-y-4">
-                    {/* AI Assistant Engine Selection */}
+                    {/* Local Auditor Engine Display */}
                     <div className="space-y-1.5">
                       <label className="text-xs font-mono font-semibold text-neutral-400 block flex items-center gap-1">
-                        <Sparkles className={`w-3 h-3 ${aiAssistant === 'codeium' ? 'text-indigo-400 animate-pulse' : 'text-emerald-400'}`} />
-                        AI ASSISTANT ENGINE
+                        <Sparkles className="w-3 h-3 text-indigo-400" />
+                        AUDIT SCANNER ENGINE
                       </label>
-                      <select
-                        value={aiAssistant}
-                        onChange={(e) => setAiAssistant(e.target.value as 'codeium' | 'gemini')}
-                        className={`w-full bg-neutral-950 border border-neutral-800 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none transition-colors cursor-pointer ${
-                          aiAssistant === 'codeium' ? 'focus:border-indigo-500' : 'focus:border-emerald-500'
-                        }`}
-                      >
-                        <option value="codeium">Codeium Assistant (Fast, Cortex-Powered)</option>
-                        <option value="gemini">Gemini 3.5 Flash (Advanced Reasoning)</option>
-                      </select>
+                      <div className="w-full bg-neutral-950 border border-neutral-800 text-neutral-400 rounded-lg px-3 py-2 text-xs font-mono select-none">
+                        Local Static Rules Engine (High-Fidelity Offline Scanner)
+                      </div>
                     </div>
 
                     {/* File Title */}
@@ -796,9 +776,7 @@ export default function App() {
                         value={snippetTitle}
                         onChange={(e) => setSnippetTitle(e.target.value)}
                         placeholder="E.g. db-service.ts"
-                        className={`w-full bg-neutral-950 border border-neutral-800 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none transition-colors ${
-                          aiAssistant === 'codeium' ? 'focus:border-indigo-500' : 'focus:border-emerald-500'
-                        }`}
+                        className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none transition-colors focus:border-indigo-500"
                       />
                     </div>
 
@@ -808,9 +786,7 @@ export default function App() {
                       <select
                         value={snippetLanguage}
                         onChange={(e) => setSnippetLanguage(e.target.value)}
-                        className={`w-full bg-neutral-950 border border-neutral-800 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none transition-colors cursor-pointer ${
-                          aiAssistant === 'codeium' ? 'focus:border-indigo-500' : 'focus:border-emerald-500'
-                        }`}
+                        className="w-full bg-neutral-950 border border-neutral-800 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none transition-colors cursor-pointer focus:border-indigo-500"
                       >
                         <option value="typescript">TypeScript</option>
                         <option value="javascript">JavaScript</option>
@@ -844,11 +820,7 @@ export default function App() {
                         type="checkbox"
                         checked={saveToHistory}
                         onChange={(e) => setSaveToHistory(e.target.checked)}
-                        className={`w-4 h-4 bg-neutral-950 border-neutral-800 rounded cursor-pointer ${
-                          aiAssistant === 'codeium'
-                            ? 'text-indigo-650 focus:ring-indigo-500'
-                            : 'text-emerald-600 focus:ring-emerald-500'
-                        }`}
+                        className="w-4 h-4 bg-neutral-950 border-neutral-800 rounded cursor-pointer text-indigo-600 focus:ring-indigo-500"
                       />
                       <label htmlFor="checkbox-save" className="text-xs font-medium text-neutral-400 cursor-pointer hover:text-neutral-200 transition-colors selection:bg-transparent">
                         Save results to SQLite History
@@ -859,15 +831,11 @@ export default function App() {
                     <button
                       type="submit"
                       disabled={analyzing}
-                      className={`w-full h-11 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer disabled:opacity-50 ${
-                        aiAssistant === 'codeium'
-                          ? 'bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.25)]'
-                          : 'bg-emerald-600 hover:bg-emerald-500'
-                      }`}
+                      className="w-full h-11 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer disabled:opacity-50 bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.25)]"
                     >
                       {analyzing ? (
                         <>
-                          <div className={`w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin`} />
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           <span>Auditing Code...</span>
                         </>
                       ) : (
@@ -887,23 +855,15 @@ export default function App() {
                   /* Loading State */
                   <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-12 shadow-xl flex flex-col justify-center items-center text-center h-[580px]">
                     <div className="relative mb-6">
-                      <div className={`w-20 h-20 rounded-full border-4 border-neutral-800 animate-spin ${
-                        aiAssistant === 'codeium' ? 'border-t-indigo-500' : 'border-t-emerald-500'
-                      }`} />
-                      <Sparkles className={`w-8 h-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse ${
-                        aiAssistant === 'codeium' ? 'text-indigo-400' : 'text-emerald-400'
-                      }`} />
+                      <div className="w-20 h-20 rounded-full border-4 border-neutral-800 animate-spin border-t-indigo-500" />
+                      <Sparkles className="w-8 h-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse text-indigo-400" />
                     </div>
                     <h3 className="font-semibold text-lg text-white mb-2">Analyzing Quality & Bad Practices</h3>
-                    <p className={`text-xs font-mono uppercase tracking-widest max-w-md mx-auto animate-pulse ${
-                      aiAssistant === 'codeium' ? 'text-indigo-400' : 'text-emerald-400'
-                    }`}>
+                    <p className="text-xs font-mono uppercase tracking-widest max-w-md mx-auto animate-pulse text-indigo-400">
                       {statusMessage}
                     </p>
                     <div className="w-48 h-1 bg-neutral-950 rounded-full overflow-hidden mt-6">
-                      <div className={`h-full rounded-full animate-infinite-loading w-1/2 ${
-                        aiAssistant === 'codeium' ? 'bg-indigo-500' : 'bg-emerald-500'
-                      }`} />
+                      <div className="h-full rounded-full animate-infinite-loading w-1/2 bg-indigo-500" />
                     </div>
                   </div>
                 ) : error ? (
@@ -917,7 +877,7 @@ export default function App() {
                       {error}
                     </p>
                     <p className="text-[10px] font-mono text-neutral-500 max-w-sm">
-                      Please confirm that the backend has a valid GEMINI_API_KEY environment variable.
+                      Please check the connection and try running the static code audit again.
                     </p>
                   </div>
                 ) : analysisResult ? (
@@ -1100,52 +1060,88 @@ export default function App() {
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                   
                                   {/* SonarQube */}
-                                  <div className="p-4 bg-neutral-950/30 border border-neutral-850 rounded-xl space-y-2">
+                                  <button
+                                    onClick={() => {
+                                      setActiveResultTab('issues');
+                                      setSelectedToolFilter('SonarQube');
+                                    }}
+                                    className="p-4 bg-neutral-950/30 border border-neutral-850 hover:border-blue-500/50 hover:bg-blue-950/10 rounded-xl space-y-2 text-left transition-all duration-300 cursor-pointer group active:scale-[0.98] w-full block focus:outline-none focus:ring-1 focus:ring-blue-500/30"
+                                  >
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-1.5">
-                                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                        <span className="text-xs font-bold text-neutral-200">SonarQube rules</span>
+                                        <div className="relative w-2 h-2">
+                                          <div className="w-2 h-2 rounded-full bg-blue-500 group-hover:animate-ping absolute inline-flex h-full w-full opacity-75" />
+                                          <div className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                                        </div>
+                                        <span className="text-xs font-bold text-neutral-200 group-hover:text-blue-300 transition-colors">SonarQube rules</span>
                                       </div>
-                                      <span className="text-xs font-mono font-bold text-blue-400">
+                                      <span className="text-xs font-mono font-bold text-blue-400 bg-blue-950/40 px-2 py-0.5 rounded border border-blue-900/30">
                                         {normalizedIssues.filter(i => i.tool === 'SonarQube').length} Violations
                                       </span>
                                     </div>
                                     <p className="text-[11px] text-neutral-400 leading-relaxed font-mono">
                                       Scanned for code smells, hotspots, complexity depth, and debt.
                                     </p>
-                                  </div>
+                                    <div className="text-[9px] text-blue-400/80 font-mono flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity mt-1">
+                                      <span>Click to see rules &rarr;</span>
+                                    </div>
+                                  </button>
 
                                   {/* PMD */}
-                                  <div className="p-4 bg-neutral-950/30 border border-neutral-850 rounded-xl space-y-2">
+                                  <button
+                                    onClick={() => {
+                                      setActiveResultTab('issues');
+                                      setSelectedToolFilter('PMD');
+                                    }}
+                                    className="p-4 bg-neutral-950/30 border border-neutral-850 hover:border-purple-500/50 hover:bg-purple-950/10 rounded-xl space-y-2 text-left transition-all duration-300 cursor-pointer group active:scale-[0.98] w-full block focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+                                  >
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-1.5">
-                                        <div className="w-2 h-2 rounded-full bg-purple-500" />
-                                        <span className="text-xs font-bold text-neutral-200">PMD Rulesets</span>
+                                        <div className="relative w-2 h-2">
+                                          <div className="w-2 h-2 rounded-full bg-purple-500 group-hover:animate-ping absolute inline-flex h-full w-full opacity-75" />
+                                          <div className="relative inline-flex rounded-full h-2 w-2 bg-purple-500" />
+                                        </div>
+                                        <span className="text-xs font-bold text-neutral-200 group-hover:text-purple-300 transition-colors">PMD Rulesets</span>
                                       </div>
-                                      <span className="text-xs font-mono font-bold text-purple-400">
+                                      <span className="text-xs font-mono font-bold text-purple-400 bg-purple-950/40 px-2 py-0.5 rounded border border-purple-900/30">
                                         {normalizedIssues.filter(i => i.tool === 'PMD').length} Violations
                                       </span>
                                     </div>
                                     <p className="text-[11px] text-neutral-400 leading-relaxed font-mono">
                                       Checked design architecture patterns, duplication rules, and style.
                                     </p>
-                                  </div>
+                                    <div className="text-[9px] text-purple-400/80 font-mono flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity mt-1">
+                                      <span>Click to see rules &rarr;</span>
+                                    </div>
+                                  </button>
 
                                   {/* ESLint */}
-                                  <div className="p-4 bg-neutral-950/30 border border-neutral-850 rounded-xl space-y-2">
+                                  <button
+                                    onClick={() => {
+                                      setActiveResultTab('issues');
+                                      setSelectedToolFilter('ESLint');
+                                    }}
+                                    className="p-4 bg-neutral-950/30 border border-neutral-850 hover:border-amber-500/50 hover:bg-amber-950/10 rounded-xl space-y-2 text-left transition-all duration-300 cursor-pointer group active:scale-[0.98] w-full block focus:outline-none focus:ring-1 focus:ring-amber-500/30"
+                                  >
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-1.5">
-                                        <div className="w-2 h-2 rounded-full bg-amber-500" />
-                                        <span className="text-xs font-bold text-neutral-200">ESLint Linter</span>
+                                        <div className="relative w-2 h-2">
+                                          <div className="w-2 h-2 rounded-full bg-amber-500 group-hover:animate-ping absolute inline-flex h-full w-full opacity-75" />
+                                          <div className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                                        </div>
+                                        <span className="text-xs font-bold text-neutral-200 group-hover:text-amber-300 transition-colors">ESLint Linter</span>
                                       </div>
-                                      <span className="text-xs font-mono font-bold text-amber-400">
+                                      <span className="text-xs font-mono font-bold text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-900/30">
                                         {normalizedIssues.filter(i => i.tool === 'ESLint').length} Warnings
                                       </span>
                                     </div>
                                     <p className="text-[11px] text-neutral-400 leading-relaxed font-mono">
                                       Identified variable scopes, type integrity, and style rules.
                                     </p>
-                                  </div>
+                                    <div className="text-[9px] text-amber-400/80 font-mono flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity mt-1">
+                                      <span>Click to see rules &rarr;</span>
+                                    </div>
+                                  </button>
 
                                 </div>
                               </div>
@@ -1598,7 +1594,7 @@ export default function App() {
           <span>SQLite Store Active: WAL mode</span>
         </div>
         <div className="text-[11px] text-neutral-600 flex items-center gap-2">
-          <span>AI Engine Powered by Gemini 3.5 Flash API</span>
+          <span>High-Fidelity Offline Code Quality Rules Engine</span>
         </div>
       </footer>
     </div>
