@@ -338,12 +338,24 @@ The entire pipeline has been fully validated for compilation and runtime correct
 
 ---
 
-## 8. Codeium AI Assistant Integration
+## 8. Instant Analysis & Interactive Deep-Linking Bento Cards
 
-The Quality Analyzer supports dual-assistant intelligence: **Codeium Assistant (Cortex-Powered)** and **Gemini 3.5 Flash (Advanced Reasoning)**. Users can toggle the AI engine directly in the frontend workspace.
+The Code Quality Analyzer consolidates the scanning pipeline into a high-fidelity static code quality rules engine with key interactive enhancements on the user interface:
 
-### Key Architectural Enhancements
-*   **Dynamic Theme & UX Adaptability**: Switching the engine to Codeium dynamically updates the visual branding of the application from emerald green to Codeium's signature indigo/violet accents.
-*   **Tailored System Prompting**: On the backend (`server.ts`), when the engine is set to `codeium`, the system instructs the LLM to run with Codeium's contextual guidelines, focusing on high-speed optimization and inserting Codeium-optimized code performance feedback inside the JSON analysis.
-*   **Activity Logging**: Database activity and logs in SQLite specify which AI engine executed the analysis, creating distinct audit records for auditing across multiple models.
-*   **Interactive Loading Simulation**: Custom status sequences corresponding to Codeium Cortex are loaded on the frontend, reflecting tokenization and analysis stages unique to Codeium.
+### Key Interactive & Architectural Enhancements
+
+1. **Instant Preset Analysis (`runAnalysis`)**
+   - The React client introduces a reusable, asynchronous `runAnalysis` engine function.
+   - When a user loads any preset snippet, the system bypasses manual user initiation. It immediately populates the code workspace, focuses the layout, and triggers the full static analysis scanning stream asynchronously. This provides instant, real-time code audit results.
+
+2. **Interactive Deep-Linking Bento Cards**
+   - The SonarQube Rules, PMD Rulesets, and ESLint Linter metric cards inside the Bento grid are fully interactive button components.
+   - Clicking on any of these cards instantly navigates the user to the **Rule Violations** (`issues`) sub-tab and presets the correct active filter (`SonarQube`, `PMD`, or `ESLint`).
+   - This deep-linking mechanism ensures immediate discoverability and quick filtering of issues, reducing clicking friction.
+
+3. **Consolidated High-Fidelity Branding & Layout**
+   - The user interface is refined to feature a unified, premium Indigo-themed aesthetic with ambient backdrop blur layers and glowing background blobs.
+   - State toggles and complex settings are consolidated to ensure a distraction-free, focused auditing experience.
+
+4. **Detailed Scanning Simulation Stream**
+   - The frontend provides dynamic, sequential loading indicators reflecting real-life static tool checks, such as tokenization, AST mapping, PMD design scanning, and SonarQube quality gate calculations.
