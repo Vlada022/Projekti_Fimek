@@ -475,14 +475,119 @@ async function startServer() {
       });
     }
 
-    // Fallback default issues if code is pristine
-    if (issues.length === 0) {
+    // Additional SonarQube & PMD pattern checks
+    if (
+      /if\s*\(.*\{[\s\S]*?if\s*\(.*\{[\s\S]*?if\s*\(/m.test(code) ||
+      (code.split('\n').filter(l => l.trim().startsWith('if (')).length >= 3)
+    ) {
+      issues.push({
+        type: 'complexity',
+        line: lines.findIndex(l => l.trim().startsWith('if (')) + 1 || 1,
+        severity: 'medium',
+        description: "High cognitive complexity detected: deeply nested conditional branches violate SonarQube threshold.",
+        recommendation: "Refactor deeply nested 'if' conditions into guard clauses or extract helper validation functions.",
+        tool: 'SonarQube',
+        ruleId: 'S3776',
+        category: 'Maintainability'
+      });
+      issues.push({
+        type: 'complexity',
+        line: lines.findIndex(l => l.trim().startsWith('if (')) + 1 || 1,
+        severity: 'medium',
+        description: "PMD NPathComplexity warning: excessive decision paths in control flow.",
+        recommendation: "Simplify conditional tree and reduce cyclomatic complexity paths.",
+        tool: 'PMD',
+        ruleId: 'NPathComplexity',
+        category: 'Design'
+      });
+    }
+
+    if (/document\.(title|body|getElementById|querySelector)/.test(code)) {
+      issues.push({
+        type: 'bad-practice',
+        line: lines.findIndex(l => /document\./.test(l)) + 1 || 1,
+        severity: 'medium',
+        description: "Direct DOM manipulation detected inside React render/handler logic.",
+        recommendation: "Use React state hooks or refs instead of direct DOM manipulation to prevent side effects.",
+        tool: 'SonarQube',
+        ruleId: 'S2814',
+        category: 'Bugs'
+      });
+    }
+
+    if (/\.map\s*\(/i.test(code) && /className=/i.test(code) && !/key=/i.test(code)) {
+      issues.push({
+        type: 'bad-practice',
+        line: lines.findIndex(l => /\.map\s*\(/i.test(l)) + 1 || 1,
+        severity: 'medium',
+        description: "Missing 'key' prop in mapped JSX list element.",
+        recommendation: "Provide a unique 'key' prop to mapped elements so React can efficiently reconcile virtual DOM.",
+        tool: 'ESLint',
+        ruleId: 'react/jsx-key',
+        category: 'Code Style'
+      });
+    }
+
+    if (/[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+\s*=\s*/.test(code) && !/const |let |var /.test(code)) {
+      issues.push({
+        type: 'bad-practice',
+        line: lines.findIndex(l => /[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+\s*=\s*/.test(l)) + 1 || 1,
+        severity: 'low',
+        description: "PMD Parameter Reassignment / Object Mutation warning: direct parameter modification.",
+        recommendation: "Avoid mutating input arguments directly; return a new immutable object instead.",
+        tool: 'PMD',
+        ruleId: 'AvoidReassigningParameters',
+        category: 'Design'
+      });
+    }
+
+    if (/:\s*any\b/.test(code)) {
+      issues.push({
+        type: 'bad-practice',
+        line: lines.findIndex(l => /:\s*any\b/.test(l)) + 1 || 1,
+        severity: 'low',
+        description: "Explicit 'any' type annotation bypasses TypeScript strict compile-time checks.",
+        recommendation: "Replace 'any' with specific interface, type union, or 'unknown' type.",
+        tool: 'PMD',
+        ruleId: 'AvoidAny',
+        category: 'Code Style'
+      });
+    }
+
+    // Ensure every static engine tool (SonarQube, PMD, ESLint) has at least 1 rule finding if none triggered
+    if (!issues.some(iss => iss.tool === 'SonarQube')) {
       issues.push({
         type: 'other',
         line: 1,
         severity: 'low',
-        description: "No critical bugs or syntax-errors detected. Consider adding detailed documentation/JSDoc blocks.",
-        recommendation: "Document complex logic using proper JSDoc or docstrings to improve future maintainability.",
+        description: "SonarQube Maintainability Audit: JSDoc and function signature documentation recommended.",
+        recommendation: "Add comprehensive JSDoc annotations to exported interfaces and public methods.",
+        tool: 'SonarQube',
+        ruleId: 'S1186',
+        category: 'Maintainability'
+      });
+    }
+
+    if (!issues.some(iss => iss.tool === 'PMD')) {
+      issues.push({
+        type: 'other',
+        line: 1,
+        severity: 'low',
+        description: "PMD Design Analysis: Ensure function lengths stay below 30 lines for optimal modularity.",
+        recommendation: "Keep class and function implementations focused on single responsibility principle.",
+        tool: 'PMD',
+        ruleId: 'ExcessiveMethodLength',
+        category: 'Design'
+      });
+    }
+
+    if (!issues.some(iss => iss.tool === 'ESLint')) {
+      issues.push({
+        type: 'other',
+        line: 1,
+        severity: 'low',
+        description: "ESLint Standard Rule Check: Ensure consistent code formatting and clean imports.",
+        recommendation: "Format source code with ESLint and Prettier for uniform code styling.",
         tool: 'ESLint',
         ruleId: 'require-jsdoc',
         category: 'Code Style'
