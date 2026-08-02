@@ -486,6 +486,13 @@ export default function App() {
     fetchSession();
   }, []);
 
+  // Pre-run analysis on initial load so SonarQube & PMD audit dashboard is populated immediately
+  useEffect(() => {
+    if (user && !analysisResult && !analyzing) {
+      runAnalysis(PRESET_SNIPPETS[0].title, PRESET_SNIPPETS[0].language, PRESET_SNIPPETS[0].code);
+    }
+  }, [user]);
+
   // Poll logs and history when user is active
   useEffect(() => {
     if (!user) return;

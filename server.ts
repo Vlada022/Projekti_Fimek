@@ -276,12 +276,12 @@ async function startServer() {
     let hasTodo = false;
     let hasEmptyCatch = false;
 
-    // Check nested loops (rough regex/heuristic)
+    // Check nested loops (multiline regex)
     if (
-      /for\s*\(.*for\s*\(/.test(code) || 
-      /while\s*\(.*while\s*\(/.test(code) ||
-      /for\s*\(.*while\s*\(/.test(code) ||
-      /while\s*\(.*for\s*\(/.test(code)
+      /for\s*\([\s\S]*?for\s*\(/.test(code) || 
+      /while\s*\([\s\S]*?while\s*\(/.test(code) ||
+      /for\s*\([\s\S]*?while\s*\(/.test(code) ||
+      /while\s*\([\s\S]*?for\s*\(/.test(code)
     ) {
       hasNestedLoop = true;
     }
