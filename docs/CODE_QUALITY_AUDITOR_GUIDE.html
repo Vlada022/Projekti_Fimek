@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Quality Analyzer & Audit System - Practical UI & Code Implementation Guide</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --border-accent: #374151;
+      --text: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-blue: #3b82f6;
+      --accent-purple: #a855f7;
+      --accent-amber: #f59e0b;
+      --accent-emerald: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 32px 16px;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 44px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .header-title h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+
+    .header-title p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #818cf8;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+    }
+
+    h2 {
+      font-size: 19px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 36px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 8px;
+    }
+
+    h2::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: #6366f1;
+      border-radius: 2px;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #e6edf3;
+      margin-top: 24px;
+      margin-bottom: 10px;
+    }
+
+    p, li {
+      font-size: 13.5px;
+      color: #c9d1d9;
+      margin-bottom: 10px;
+    }
+
+    ul, ol {
+      padding-left: 20px;
+      margin-bottom: 18px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: rgba(110, 118, 129, 0.2);
+      color: #58a6ff;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 13px;
+      background: #0d1117;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid #21262d;
+      vertical-align: top;
+    }
+
+    th {
+      background: #161b22;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .code-block {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #e6edf3;
+      overflow-x: auto;
+      margin: 14px 0;
+      line-height: 1.5;
+    }
+
+    /* Preset Showcase Cards */
+    .preset-card {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .preset-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .preset-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #58a6ff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preset-badge {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .badge-sonar { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-eslint { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-pmd { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+    /* Bento Grid Mockup Styling */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 16px 0;
+    }
+
+    .bento-card {
+      background: #161b22;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: left;
+    }
+
+    .bento-card.sonar {
+      border-color: rgba(59, 130, 246, 0.4);
+      background: rgba(59, 130, 246, 0.05);
+    }
+    .bento-card.pmd {
+      border-color: rgba(168, 85, 247, 0.4);
+      background: rgba(168, 85, 247, 0.05);
+    }
+    .bento-card.eslint {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.05);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .card-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .sonar .card-tag { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .pmd .card-tag { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+    .eslint .card-tag { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+    .card-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .card-action {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+    .sonar .card-action { color: #60a5fa; }
+    .pmd .card-action { color: #c084fc; }
+    .eslint .card-action { color: #fbbf24; }
+
+    .callout {
+      background: rgba(79, 70, 229, 0.08);
+      border-left: 4px solid #6366f1;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 16px;
+      margin: 18px 0;
+    }
+
+    .callout-title {
+      font-weight: 700;
+      color: #818cf8;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .print-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      z-index: 100;
+    }
+
+    .print-btn:hover {
+      background: #4338ca;
+      transform: translateY(-2px);
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #1f2937;
+        padding: 0;
+      }
+      .container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+        background: #ffffff;
+      }
+      .header-title h1, h2, h3, .card-title, .preset-title {
+        color: #111827 !important;
+      }
+      p, li, th, td, .card-desc {
+        color: #374151 !important;
+      }
+      .preset-card, .code-block, table, .bento-card {
+        background: #f9fafb !important;
+        border-color: #e5e7eb !important;
+      }
+      .print-btn {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="print-btn" onclick="window.print()">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/>
+    </svg>
+    Export / Print PDF
+  </button>
+
+  <div class="container">
+    <div class="header">
+      <div class="header-title">
+        <h1>Code Quality Analyzer & Audit System</h1>
+        <p>Implementation, Practical Preset Examples & UI/Code Execution Guide</p>
+      </div>
+      <div class="badge">
+        <span>Static Rules Engine v2.4</span>
+      </div>
+    </div>
+
+    <!-- Section 1: Overview -->
+    <h2>1. Overview & Tool Summary</h2>
+    <p>
+      The <strong>Code Quality Analyzer</strong> is an embedded static analysis suite. It analyzes source code for vulnerabilities, bad practices, cognitive complexity, and duplicate logic without requiring external compiler binaries.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Analysis Tool</th>
+          <th>Primary Focus Areas</th>
+          <th>What It Detects in Our App</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:#60a5fa;">SonarQube</strong></td>
+          <td>Security Vulnerabilities, Reliability (Bugs), Code Smells, Technical Debt</td>
+          <td>SQL Injection risks, direct string concatenation in queries, unhandled exception blocks, hardcoded credentials.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#c084fc;">PMD</strong></td>
+          <td>Design Architecture, Cognitive Complexity, Duplication (CPD)</td>
+          <td>Deeply nested loops ($O(N^2)$ quadratic complexity), duplicate validation code blocks across multiple branches.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#fbbf24;">ESLint</strong></td>
+          <td>Syntax Integrity, Variable Scope, React Best Practices, Style Rules</td>
+          <td>Missing React <code>key</code> props in mapped components, residual <code>console.log</code> calls, obsolete <code>var</code> keywords, inline function bindings inside loops.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 2: User Execution Workflow in UI -->
+    <h2>2. User Execution Workflow & UI Screenshot Examples</h2>
+    <p>
+      Below is the visual mockup representation of the <strong>Code Audit Editor</strong> as integrated directly into the Application UI.
+    </p>
+
+    <!-- Visual UI Mockup Card matching user image -->
+    <div style="background: #111418; border: 1px solid #282e38; border-radius: 12px; padding: 20px; font-family: 'JetBrains Mono', monospace; margin: 24px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222730; padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="font-weight: 800; font-size: 14px; color: #f0f6fc; display: flex; align-items: center; gap: 8px;">
+          <span style="color: #6366f1;">&gt;_</span> CODE AUDIT EDITOR
+        </div>
+        <div style="font-size: 11px; color: #8b949e; cursor: pointer;">↺ Clear</div>
+      </div>
+
+      <div style="font-size: 10px; font-weight: 700; color: #8b949e; letter-spacing: 0.05em; margin-bottom: 8px;">SELECT PRESET DEMO SCENARIOS:</div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+        <div style="background: #161a22; border: 1px solid #2b313d; border-radius: 6px; padding: 10px; cursor: pointer;">
+          <div style="font-size: 11px; font-weight: 700; color: #60a5fa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Movie Search SQL Inj...</div>
+          <div style="font-size: 9px; color: #6e7681; margin-top: 2px;">TYPESCRIPT</div>
+        </div>
+        <div style="background: rgba(99, 102, 241, 0.15); border: 1px solid #6366f1; border-radius: 6px; padding: 10px; cursor: pointer; box-shadow: 0 0 10px rgba(99,102,241,0.2);">
+          <div style="font-size: 11px; font-weight: 700; color: #818cf8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Movie Grid Complex ...</div>
+          <div style="font-size: 9px; color: #a5b4fc; margin-top: 2px;">JAVASCRIPT</div>
+        </div>
+        <div style="background: #161a22; border: 1px solid #2b313d; border-radius: 6px; padding: 10px; cursor: pointer;">
+          <div style="font-size: 11px; font-weight: 700; color: #c084fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Movie Add Form Dupl...</div>
+          <div style="font-size: 9px; color: #6e7681; margin-top: 2px;">TYPESCRIPT</div>
+        </div>
+      </div>
+
+      <div style="font-size: 10px; font-weight: 700; color: #8b949e; letter-spacing: 0.05em; margin-bottom: 6px;">AUDIT SCANNER ENGINE</div>
+      <div style="background: #161a22; border: 1px solid #2b313d; border-radius: 6px; padding: 8px 12px; font-size: 11px; color: #e6edf3; margin-bottom: 14px;">
+        Local Static Rules Engine (High-Fidelity Offline Scanner)
+      </div>
+
+      <div style="font-size: 10px; font-weight: 700; color: #8b949e; letter-spacing: 0.05em; margin-bottom: 6px;">FILE TITLE</div>
+      <div style="background: #161a22; border: 1px solid #2b313d; border-radius: 6px; padding: 8px 12px; font-size: 11px; color: #ffffff; font-weight: 600; margin-bottom: 14px;">
+        MovieGridRenderer.jsx
+      </div>
+
+      <div style="font-size: 10px; font-weight: 700; color: #8b949e; letter-spacing: 0.05em; margin-bottom: 6px;">LANGUAGE / DIALECT</div>
+      <div style="background: #161a22; border: 1px solid #2b313d; border-radius: 6px; padding: 8px 12px; font-size: 11px; color: #e6edf3; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <span>JavaScript</span>
+        <span style="color: #6e7681;">▼</span>
+      </div>
+
+      <div style="font-size: 10px; font-weight: 700; color: #8b949e; letter-spacing: 0.05em; margin-bottom: 6px;">SOURCE CODE</div>
+      <div style="background: #0d1117; border: 1px solid #21262d; border-radius: 6px; padding: 12px; font-size: 11px; line-height: 1.5; color: #e6edf3; position: relative;">
+        <div style="color: #6a737d;">import React from 'react';</div>
+        <br/>
+        <div style="color: #6a737d;">// ESLint and React warning: nested complex logic in render and missing unique React keys</div>
+        <div><span style="color: #f97583;">export default function</span> <span style="color: #b392f0;">MovieGridRenderer</span>({ moviesList, filterText, selectedGenre, onSelect }) {</div>
+        <div style="padding-left: 16px;"><span style="color: #f97583;">let</span> displayedMovies = [];</div>
+        <br/>
+        <div style="padding-left: 16px; color: #6a737d;">// Cognitive complexity design smell: deep nesting instead of early returns</div>
+        <div style="padding-left: 16px;"><span style="color: #f97583;">if</span> (moviesList !== <span style="color: #79b8ff;">null</span> &amp;&amp; moviesList !== <span style="color: #79b8ff;">undefined</span>)</div>
+      </div>
+    </div>
+
+    <h3>Step-by-Step UI Execution Instructions:</h3>
+    <ol>
+      <li><strong>Navigate to Code Audit Editor</strong>: Click the <code>Code Audit Editor</code> tab in the primary navigation header.</li>
+      <li><strong>Trigger a Preset Scenario</strong>: Click any of the 3 preset scenario buttons displayed at the top of the editor:
+        <ul>
+          <li><code>Movie Search SQL Injection & Sync Block</code>: Loads raw SQL string concatenation example.</li>
+          <li><code>Movie Grid Complex Render & Keys Warning</code>: Loads nested render loops and missing React keys example (ESLint target).</li>
+          <li><code>Movie Add Form Duplicate & State Mutation</code>: Loads duplicate validation logic across genre branches (PMD CPD target).</li>
+        </ul>
+      </li>
+      <li><strong>Automatic Scanning Execution (`runAnalysis`)</strong>:
+        Selecting a preset populates the code editor and automatically runs the static analysis pipeline without manual button clicks.
+      </li>
+      <li><strong>Inspect Dashboard Metrics & Interactive Bento Cards</strong>:
+        Review the Quality Score, Quality Gate status, and click on any of the <strong>SonarQube</strong>, <strong>PMD</strong>, or <strong>ESLint</strong> Bento cards to filter violations.
+      </li>
+      <li><strong>Review Refactored Code Output</strong>:
+        Switch to the <code>Refactored Code</code> sub-tab to inspect and copy sanitized, parameterized production code.</li>
+    </ol>
+
+    <div class="page-break"></div>
+
+    <!-- Section 3: In-Depth Analysis of Preset Examples -->
+    <h2>3. Practical Preset Examples: UI, Code & Output Breakdown</h2>
+
+    <!-- Preset 1 -->
+    <div class="preset-card">
+      <div class="preset-header">
+        <div class="preset-title">
+          <span>Preset 1: Movie Search SQL Injection & Sync Block</span>
+        </div>
+        <div class="preset-badge badge-sonar">SonarQube + ESLint + PMD</div>
+      </div>
+      <p><strong>Code File Analyzed:</strong> <code>movie-db-adapter.ts</code> (Language: TypeScript)</p>
+
+      <h3>Code Snippet Evaluated:</h3>
+      <div class="code-block">export function searchAndFilterMovies(dbConnection: any, titleQuery: string, genreFilter: string) {
+  // CRITICAL: SQL Injection Risk - Direct query concatenation
+  const query = "SELECT * FROM movies WHERE title LIKE '%" + titleQuery + "%' AND genre = '" + genreFilter + "'";
+  console.log("Searching database with raw query: " + query);
+  
+  const statement = dbConnection.prepare(query);
+  const results = statement.all();
+  
+  // ESLint Warning: unused variables left in local scope
+  const cachedAt = new Date().toISOString();
+  ...
+}</div>
+
+      <h3>How It Is Implemented in Backend Code (`server.ts`):</h3>
+      <ul>
+        <li><strong>SonarQube Regex Rule (SQL Injection Risk)</strong>: Scans for <code>SELECT ... + input</code> patterns, creating a <code>high</code> severity Security Flaw violation under Rule ID <code>S2068/S1523</code>.</li>
+        <li><strong>ESLint Rule (`no-console`)</strong>: Flags <code>console.log("Searching...")</code> statement on line 49.</li>
+        <li><strong>ESLint Rule (`no-unused-vars`)</strong>: Flags unused local variable <code>cachedAt</code>.</li>
+      </ul>
+
+      <h3>What It Provides You in the UI:</h3>
+      <ul>
+        <li><strong>Quality Gate Status</strong>: <span style="color:#f87171; font-weight:bold;">FAILED</span> (Security Rating downgraded to <strong>D</strong>).</li>
+        <li><strong>Overall Quality Score</strong>: <code>65 / 100</code> due to critical SQL injection risk.</li>
+        <li><strong>Technical Debt</strong>: <code>1h 30m</code> remediation estimate.</li>
+        <li><strong>Refactored Code Output</strong>: Replaces raw string concatenation with secure SQL parameter placeholders:
+          <div class="code-block">const query = "SELECT * FROM movies WHERE title LIKE ? AND genre = ?";
+const statement = dbConnection.prepare(query);
+const results = statement.all(`%${titleQuery}%`, genreFilter);</div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Preset 2 -->
+    <div class="preset-card">
+      <div class="preset-header">
+        <div class="preset-title">
+          <span>Preset 2: Movie Grid Complex Render & Keys Warning</span>
+        </div>
+        <div class="preset-badge badge-eslint">ESLint Featured Target</div>
+      </div>
+      <p><strong>Code File Analyzed:</strong> <code>MovieGridRenderer.jsx</code> (Language: JavaScript / React JSX)</p>
+
+      <h3>Is ESLint Used Here?</h3>
+      <p>
+        <strong>YES! ESLint is the primary target engine for this preset example.</strong> It checks React JSX best practices, missing keys, and prohibited inline handler bindings.
+      </p>
+
+      <h3>Code Snippet Evaluated:</h3>
+      <div class="code-block">export default function MovieGridRenderer({ moviesList, filterText, selectedGenre, onSelect }) {
+  // Cognitive complexity design smell: deep nesting
+  if (moviesList !== null && moviesList !== undefined) {
+    if (moviesList.length > 0) {
+      for (let i = 0; i < moviesList.length; i++) {
+        if (moviesList[i].rating >= 0) {
+          if (moviesList[i].title.toLowerCase().includes(filterText.toLowerCase())) {
+            if (selectedGenre === 'All' || moviesList[i].genre === selectedGenre) {
+              displayedMovies.push(moviesList[i]);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return (
+    &lt;div className="grid grid-cols-3 gap-4"&gt;
+      {displayedMovies.map((movie) =&gt; (
+        // WARNING: Missing "key" prop on mapped element!
+        &lt;div className="movie-card"&gt;
+          &lt;button onClick={() =&gt; { console.log(movie.title); document.title = movie.title; }}&gt;
+            View Details
+          &lt;/button&gt;
+        &lt;/div&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}</div>
+
+      <h3>How It Is Implemented in Backend Code (`server.ts`):</h3>
+      <ul>
+        <li><strong>ESLint Rule (`react/jsx-key`)</strong>: Detects <code>displayedMovies.map(...)</code> rendering JSX elements without a unique <code>key={movie.id}</code> prop.</li>
+        <li><strong>ESLint Rule (`no-console`)</strong>: Identifies inline <code>console.log(...)</code> statement inside the button <code>onClick</code> handler.</li>
+        <li><strong>ESLint Rule (`react/jsx-no-bind`)</strong>: Detects inline arrow function allocation inside the render loop (creates new memory references on every re-render).</li>
+        <li><strong>PMD Rule (`AvoidDeeplyNestedLoops`)</strong>: Identifies 5 levels of nested <code>if</code> statements and loops, flagging elevated Cognitive Complexity.</li>
+      </ul>
+
+      <h3>What It Provides You in the UI:</h3>
+      <ul>
+        <li><strong>ESLint Warning Count</strong>: <code>3 Warnings</code> (Missing React key, console log, inline function bind).</li>
+        <li><strong>PMD Complexity Rating</strong>: <span style="color:#c084fc; font-weight:bold;">High Cognitive Complexity</span> (Quadratic branching depth).</li>
+        <li><strong>Refactored Code Output</strong>: Converts deep nested <code>if</code> statements into clean array <code>.filter()</code> guard clauses and adds <code>key={movie.id}</code> to mapped React cards.</li>
+      </ul>
+    </div>
+
+    <!-- Preset 3 -->
+    <div class="preset-card">
+      <div class="preset-header">
+        <div class="preset-title">
+          <span>Preset 3: Movie Add Form Duplicate & State Mutation</span>
+        </div>
+        <div class="preset-badge badge-pmd">PMD CopyPasteDetector</div>
+      </div>
+      <p><strong>Code File Analyzed:</strong> <code>MovieFormValidator.ts</code> (Language: TypeScript)</p>
+
+      <h3>Code Snippet Evaluated:</h3>
+      <div class="code-block">export function validateMovieInputs(movie: MovieInput) {
+  // SonarQube Code Smell & PMD CPD: Duplicate validation blocks
+  if (movie.genre === "Action") {
+    if (!movie.title || movie.title.trim().length === 0) return { valid: false, error: "Movie title cannot be empty" };
+    if (movie.year < 1888 || movie.year > 2030) return { valid: false, error: "Invalid movie release year specified" };
+    if (movie.rating < 0 || movie.rating > 10) return { valid: false, error: "Rating must be between 0 and 10" };
+    return { valid: true };
+  } else if (movie.genre === "Sci-Fi") {
+    // EXACT DUPLICATE BLOCK across 10 lines
+    if (!movie.title || movie.title.trim().length === 0) return { valid: false, error: "Movie title cannot be empty" };
+    if (movie.year < 1888 || movie.year > 2030) return { valid: false, error: "Invalid movie release year specified" };
+    if (movie.rating < 0 || movie.rating > 10) return { valid: false, error: "Rating must be between 0 and 10" };
+    return { valid: true };
+  }
+  
+  // ESLint Rule (no-param-reassign): Direct parameter mutation
+  movie.genre = "General";
+  return { valid: true };
+}</div>
+
+      <h3>How It Is Implemented in Backend Code (`server.ts`):</h3>
+      <ul>
+        <li><strong>PMD CopyPasteDetector (CPD) Engine</strong>: Canonicalizes lines (stripping whitespace, comments, imports) and scans sliding windows. Detects identical sequence of 10+ matching lines starting at line 148.</li>
+        <li><strong>SonarQube Rule (`S1192`)</strong>: Flags duplicated validation logic and duplicate string literals.</li>
+        <li><strong>ESLint Rule (`no-param-reassign`)</strong>: Flags direct object parameter mutation <code>movie.genre = "General"</code>.</li>
+      </ul>
+
+      <h3>What It Provides You in the UI:</h3>
+      <ul>
+        <li><strong>PMD Duplication Violations</strong>: <code>1 Duplicated Block Flag</code> pinpointing exact line numbers.</li>
+        <li><strong>Maintainability Rating</strong>: Downgraded to <strong>C</strong> due to DRY (Don't Repeat Yourself) violations.</li>
+        <li><strong>Refactored Code Output</strong>: Consolidates duplicate checks into a single reusable validator function without parameter mutation.</li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Section 4: Interactive Bento Grid Deep-Linking -->
+    <h2>4. Interactive Bento Grid & Deep-Linking UI Feature</h2>
+    <p>
+      The dashboard UI contains an interactive 3-column Bento Grid representing the static rule categories.
+    </p>
+
+    <div class="bento-grid">
+      <!-- SonarQube Card -->
+      <div class="bento-card sonar">
+        <div class="card-header">
+          <span class="card-title">SonarQube rules</span>
+          <span class="card-tag">0 Violations</span>
+        </div>
+        <p class="card-desc">Scanned for code smells, hotspots, complexity depth, and debt.</p>
+        <div class="card-action">Click to see rules &rarr;</div>
+      </div>
+
+      <!-- PMD Card -->
+      <div class="bento-card pmd">
+        <div class="card-header">
+          <span class="card-title">PMD Rulesets</span>
+          <span class="card-tag">0 Violations</span>
+        </div>
+        <p class="card-desc">Checked design architecture patterns, duplication rules, and style.</p>
+        <div class="card-action">Click to see rules &rarr;</div>
+      </div>
+
+      <!-- ESLint Card -->
+      <div class="bento-card eslint">
+        <div class="card-header">
+          <span class="card-title">ESLint Linter</span>
+          <span class="card-tag">1 Warning</span>
+        </div>
+        <p class="card-desc">Identified variable scopes, type integrity, and style rules.</p>
+        <div class="card-action">Click to filter &rarr;</div>
+      </div>
+    </div>
+
+    <h3>UI Deep-Linking Implementation (`src/App.tsx`):</h3>
+    <div class="code-block">&lt;button
+  onClick={() =&gt; {
+    setActiveResultTab('issues');
+    setSelectedToolFilter('ESLint');
+  }}
+  className="p-4 bg-neutral-950/30 border border-neutral-850 hover:border-amber-500/50 rounded-xl"
+&gt;
+  &lt;span className="text-xs font-bold text-neutral-200"&gt;ESLint Linter&lt;/span&gt;
+  &lt;span className="text-xs font-mono font-bold text-amber-400"&gt;1 Warning&lt;/span&gt;
+  &lt;span className="text-[9px] text-amber-400/80"&gt;Click to see rules &amp;rarr;&lt;/span&gt;
+&lt;/button&gt;</div>
+
+    <!-- Section 5: Future Enhancements -->
+    <h2>5. Suggestions for Future Improvements</h2>
+    <ul>
+      <li><strong>Git Pre-Commit Hook Integration</strong>: Integrate <code>husky</code> to automatically run <code>/api/analyze</code> before git commits.</li>
+      <li><strong>Monaco Inline Squiggle Annotations</strong>: Display inline red/yellow squiggly error highlights directly inside the code editor interface.</li>
+      <li><strong>SARIF Report Exporting</strong>: Export results in Static Analysis Results Interchange Format (SARIF) for GitHub Security tab integration.</li>
+      <li><strong>Project-Wide Repository Scanner</strong>: Expand single-snippet parsing to scan entire multi-file project directories.</li>
+    </ul>
+
+  </div>
+
+</body>
+</html>

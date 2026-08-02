@@ -57,7 +57,32 @@ async function startServer() {
 
   // --- API ROUTES ---
 
-  // Check current user session
+  // Documentation PDF & HTML endpoints
+  app.get('/docs/CODE_QUALITY_AUDITOR_GUIDE.pdf', (req, res) => {
+    res.contentType('application/pdf');
+    res.sendFile(path.join(process.cwd(), 'CODE_QUALITY_AUDITOR_GUIDE.pdf'));
+  });
+
+  app.get('/docs/CODE_QUALITY_AUDITOR_GUIDE.html', (req, res) => {
+    res.contentType('text/html');
+    res.sendFile(path.join(process.cwd(), 'docs', 'CODE_QUALITY_AUDITOR_GUIDE.html'));
+  });
+
+  app.get('/docs/DEVOPS_CICD_GUIDE.pdf', (req, res) => {
+    res.contentType('application/pdf');
+    res.sendFile(path.join(process.cwd(), 'DEVOPS_CICD_GUIDE.pdf'));
+  });
+
+  app.get('/docs/DEVOPS_CICD_GUIDE.html', (req, res) => {
+    res.contentType('text/html');
+    res.sendFile(path.join(process.cwd(), 'docs', 'DEVOPS_CICD_GUIDE.html'));
+  });
+
+  app.get('/docs/DEVOPS_CICD_GUIDE.md', (req, res) => {
+    res.contentType('text/markdown');
+    res.sendFile(path.join(process.cwd(), 'docs', 'DEVOPS_CICD_GUIDE.md'));
+  });
+
   app.get('/api/session', (req, res) => {
     const sessionId = req.cookies.session_id;
     if (!sessionId) {
@@ -261,12 +286,27 @@ async function startServer() {
       hasNestedLoop = true;
     }
 
-    // Check hardcoded secret
+    // Check hardcoded secret / SQL injection
     if (
       /api_key|apikey|secret_key|secretkey|access_token|private_key|db_password/i.test(code) &&
       /=\s*['"`][a-zA-Z0-9_\-]{8,}['"`]/.test(code)
     ) {
       hasHardcodedSecret = true;
+    }
+
+    let hasSqlInjection = false;
+    if (/SELECT\s+.*FROM/i.test(code) && /\+/.test(code)) {
+      hasSqlInjection = true;
+      issues.push({
+        type: 'security-flaw',
+        line: lines.findIndex(l => /SELECT/i.test(l) && /\+/.test(l)) + 1 || 1,
+        severity: 'high',
+        description: "Critical SQL Injection risk detected: raw query string concatenation in SQL statement.",
+        recommendation: "Use parameterized queries or prepared statements with placeholder bindings instead of string concatenation.",
+        tool: 'SonarQube',
+        ruleId: 'S2068',
+        category: 'Security'
+      });
     }
 
     let hasDuplicate = false;

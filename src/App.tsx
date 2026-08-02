@@ -41,20 +41,27 @@ const PRESET_SNIPPETS = [
     title: 'movie-db-adapter.ts',
     code: `import Database from 'better-sqlite3';
 
+// TODO: Refactor raw SQL string concatenation to prepared statements before release
 export function searchAndFilterMovies(dbConnection: any, titleQuery: string, genreFilter: string) {
   // CRITICAL: SQL Injection Risk - Direct query concatenation of search input
   const query = "SELECT * FROM movies WHERE title LIKE '%" + titleQuery + "%' AND genre = '" + genreFilter + "'";
   console.log("Searching database with raw query: " + query);
   
-  // Potential PMD violation: synchronous execution inside main event loop
   const statement = dbConnection.prepare(query);
   const results = statement.all();
   
-  // ESLint Warning: unused variables left in local scope
-  const cachedAt = new Date().toISOString();
-  let debugCounter = 0;
+  // PMD Rule (AvoidDeeplyNestedLoops): O(N^2) quadratic nested loop inspection
+  for (let i = 0; i < results.length; i++) {
+    for (let j = 0; j < results.length; j++) {
+      if (i !== j && results[i].id == results[j].id) {
+        console.log("Duplicate record identifier detected in dataset");
+      }
+    }
+  }
   
-  // Code smell: duplicate mapping logic
+  // ESLint Warning: obsolete var keyword and unused local variable
+  var cachedAt = new Date().toISOString();
+  
   const formattedResults = results.map((movie: any) => {
     return {
       id: movie.id,
