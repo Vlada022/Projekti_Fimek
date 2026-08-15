@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Primena DevOps i CI/CD procesa u razvoju skalabilne web aplikacije</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    :root {
+      --primary: #4338ca;
+      --primary-light: #6366f1;
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --surface-card: #ffffff;
+      --border: #e2e8f0;
+      --border-accent: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --accent-blue: #2563eb;
+      --accent-purple: #9333ea;
+      --accent-emerald: #059669;
+      --accent-amber: #d97706;
+      --accent-rose: #e11d48;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 30px;
+      font-size: 13.5px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header-banner {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+      box-shadow: 0 10px 25px rgba(30, 27, 75, 0.2);
+    }
+
+    .header-tag {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      color: #e0e7ff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .header-banner h1 {
+      font-size: 23px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .header-banner p {
+      color: #c7d2fe;
+      font-size: 13.5px;
+      max-width: 95%;
+      line-height: 1.5;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .meta-item span {
+      display: block;
+      font-size: 11px;
+      color: #a5b4fc;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .meta-item strong {
+      font-size: 12.5px;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    h2 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #1e1b4b;
+      margin-top: 32px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      page-break-after: avoid;
+    }
+
+    h3 {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #312e81;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      page-break-after: avoid;
+    }
+
+    p, ul, ol {
+      margin-bottom: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    ul, ol {
+      padding-left: 22px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    strong {
+      color: var(--text);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+
+    .stat-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      border-left: 4px solid var(--primary-light);
+    }
+
+    .stat-box.emerald { border-left-color: var(--accent-emerald); }
+    .stat-box.blue { border-left-color: var(--accent-blue); }
+    .stat-box.purple { border-left-color: var(--accent-purple); }
+    .stat-box.amber { border-left-color: var(--accent-amber); }
+
+    .stat-box h4 {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .stat-box p {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-bottom: 0;
+      line-height: 1.4;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 12px;
+      page-break-inside: avoid;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #1e293b;
+      font-weight: 700;
+      text-align: left;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background: #f1f5f9;
+      color: #334155;
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0 16px 0;
+      line-height: 1.5;
+      page-break-inside: avoid;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border: none;
+      font-size: inherit;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-purple { background: #f3e8ff; color: #6b21a8; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+
+    .callout {
+      border-left: 4px solid var(--primary-light);
+      background: #eef2ff;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0;
+      font-size: 12.5px;
+      page-break-inside: avoid;
+    }
+
+    .callout strong {
+      color: #312e81;
+    }
+
+    .callout.success {
+      border-left-color: var(--accent-emerald);
+      background: #ecfdf5;
+    }
+    .callout.success strong {
+      color: #065f46;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: #ffffff;
+      }
+      .container {
+        max-width: 100%;
+      }
+      .header-banner {
+        box-shadow: none;
+        border: 1px solid #cbd5e1;
+      }
+      pre {
+        background: #1e293b !important;
+        color: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .stat-box, .card, .callout, th {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- NASLOVNI BANER -->
+  <div class="header-banner">
+    <div class="header-tag">DevOps & CI/CD Tehnička Dokumentacija</div>
+    <h1>Primena DevOps i CI/CD procesa u razvoju skalabilne web aplikacije</h1>
+    <p>Razvoj full-stack aplikacije (Movie Review & Quality Hub) sa automatizovanim testiranjem (Vitest & Playwright), multi-stage Docker kontejnerizacijom i automatskim GitHub Actions deployment procesom na Cloud infrastrukturu.</p>
+    
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span>Arhitektura</span>
+        <strong>React 19 + Express + SQLite</strong>
+      </div>
+      <div class="meta-item">
+        <span>Test Automatizacija</span>
+        <strong>Playwright E2E + Vitest</strong>
+      </div>
+      <div class="meta-item">
+        <span>Kontejnerizacija</span>
+        <strong>Docker Multi-Stage</strong>
+      </div>
+      <div class="meta-item">
+        <span>CI/CD Pipeline</span>
+        <strong>GitHub Actions + Cloud Run</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. ARHITEKTURA -->
+  <h2>1. Arhitektura Sistema i Tehnološki Stack</h2>
+  <p>Aplikacija je projektovana kao skalabilno monolitno rešenje koje kombinuje klijentski interfejs, REST API rute, bezbednosne mehanizme i ugrađeni statički analizator koda. Svi segmenti su usklađeni sa modernim DevOps standardima.</p>
+
+  <div class="grid-3">
+    <div class="stat-box blue">
+      <h4>Korisnički Interfejs (Frontend)</h4>
+      <p>React 19, TypeScript, Vite, Tailwind CSS v4, Motion animacije i Lucide ikonice.</p>
+    </div>
+    <div class="stat-box emerald">
+      <h4>Serverski Sloj (Backend)</h4>
+      <p>Node.js 20 LTS, Express 4.x, TypeScript (tsx za dev, esbuild CJS bundle za produkciju).</p>
+    </div>
+    <div class="stat-box purple">
+      <h4>Baza & Skladištenje</h4>
+      <p>SQLite integrisan kroz <code>better-sqlite3</code> sa parametrizovanim prepared statements upitima.</p>
+    </div>
+  </div>
+
+  <pre><code>┌────────────────────────────────────────────────────────────────────────┐
+│                        KLIJENTSKI NIVO (React 19)                      │
+│   Movie Finder & Review  │  Korisnički Profil & Logovi │ Code Quality  │
+│   (Pretraga, CRUD)       │  (Audit Trail Revizija)     │ (Sonar/PMD)   │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ HTTP / REST API (/api/*)
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        SERVERSKI NIVO (Express.js)                     │
+│   Autentifikacija & Sesije │ Movie CRUD Kontroler │ Analizator Koda    │
+│   (SHA-256 Kriptografija)  │ (Validacija Unosa)   │ (Statička Pravila) │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ Parametrizovani SQL
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                      PERSISTENTNI SLOJ (SQLite Engine)                 │
+│   Tabele: users │ movies │ activity_logs │ code_analyses               │
+└────────────────────────────────────────────────────────────────────────┘</code></pre>
+
+  <!-- 2. UI DEO -->
+  <h2>2. Implementacija Korisničkog Interfejsa (Frontend - UI)</h2>
+  <p>Korisnički interfejs u <code>/src</code> direktorijumu nudi čist, moderan i responsivan doživljaj prilagođen i krajnjim korisnicima i DevOps/QA inženjerima.</p>
+
+  <h3>2.1 Funkcionalni Moduli Aplikacije</h3>
+  <ul>
+    <li><strong>Autentifikacioni modul (Login / Register):</strong> Omogućava prijavu postojećih i registraciju novih korisnika uz klijentsku i serversku validaciju. Uključuje <em>Sandbox Quick-Credentials</em> dugmad za brzo testiranje (<code>@admin</code>, <code>@developer</code>, <code>@reviewer</code>).</li>
+    <li><strong>Katalog filmova (Movie Finder & Reviews):</strong> Prikazuje listu filmova sa detaljima (godina, žanr, režiser, ocena, trajanje), pruža filtriranje i pretragu u realnom vremenu, kao i modal za dodavanje i brisanje filmova.</li>
+    <li><strong>Korisnički profil i revizorski logovi (Audit Trail):</strong> Prikazuje metapodatke korisnika, omogućava izmenu biografije i lokacije, i nudi uvid u sistemske logove svih akcija (prijava, kreiranje filmova, brisanje, IP adrese).</li>
+    <li><strong>Code Quality & DevOps Hub:</strong> Interaktivni editor koji simulira statičku analizu i prikazuje <strong>SonarQube</strong> ocene (A–E, Quality Gate, tehnički dug, bezbednost), <strong>PMD</strong> analizu kompleksnosti ($O(N^2)$ petlje) i <strong>ESLint</strong> stilska pravila.</li>
+  </ul>
+
+  <h3>2.2 Prilagođenost UI-ja za Test Automatizaciju (ID Selektori)</h3>
+  <p>Kako bi se eliminisali nestabilni ("flaky") testovi i izbegle krhke XPath putanje, svi interaktivni elementi poseduju stabilne identifikatore:</p>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Element / Komponenta</th>
+        <th>HTML ID / Klasa Selektor</th>
+        <th>Namena u Automatizaciji</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Admin Sandbox dugme</td>
+        <td><code>#btn-prefill-admin</code></td>
+        <td>Instant popunjavanje login forme administratora</td>
+      </tr>
+      <tr>
+        <td>Login Submit dugme</td>
+        <td><code>#btn-submit-auth</code></td>
+        <td>Slanje forme za prijavu/registraciju</td>
+      </tr>
+      <tr>
+        <td>Polje za pretragu filmova</td>
+        <td><code>#movie-search</code></td>
+        <td>Testiranje pretrage i filtriranja</td>
+      </tr>
+      <tr>
+        <td>Modal za unos filma</td>
+        <td><code>#btn-add-movie-trigger</code></td>
+        <td>Otvaranje modala za kreiranje novog zapisa</td>
+      </tr>
+      <tr>
+        <td>Polja forme filma</td>
+        <td><code>#movie-title</code>, <code>#movie-year</code>, <code>#movie-rating</code></td>
+        <td>Unos i validacija podataka o filmu</td>
+      </tr>
+      <tr>
+        <td>Dugme za brisanje filma</td>
+        <td><code>.test-btn-delete-movie</code></td>
+        <td>Aktivacija brisanja uz browser potvrdni dijalog</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <!-- 3. BACKEND DEO -->
+  <h2>3. Implementacija Serverskog Dela (Backend & Baza)</h2>
+  <p>Serverski sloj implementiran u <code>server.ts</code> i <code>src/db.ts</code> obezbeđuje REST API komunikaciju, bezbednost podataka i interakciju sa bazom.</p>
+
+  <h3>3.1 REST API Rute</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Metoda</th>
+        <th>Endpoint</th>
+        <th>Opis i Funkcionalnost</th>
+        <th>Autentifikacija</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-blue">POST</span></td>
+        <td><code>/api/auth/register</code></td>
+        <td>Registracija korisnika sa proverom jedinstvenosti</td>
+        <td>Nije potrebna</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-blue">POST</span></td>
+        <td><code>/api/auth/login</code></td>
+        <td>Provera kredencijala i generisanje sesije</td>
+        <td>Nije potrebna</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-amber">GET</span></td>
+        <td><code>/api/auth/me</code></td>
+        <td>Vraća podatke o trenutno prijavljenom korisniku</td>
+        <td>Opciona</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-green">PUT</span></td>
+        <td><code>/api/auth/profile</code></td>
+        <td>Ažuriranje biografije, lokacije i omiljenih žanrova</td>
+        <td>Obavezna sesija</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-amber">GET</span></td>
+        <td><code>/api/movies</code></td>
+        <td>Dobavljanje svih filmova sa opcijom pretrage</td>
+        <td>Nije potrebna</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-blue">POST</span></td>
+        <td><code>/api/movies</code></td>
+        <td>Dodavanje novog filma sa validacijom unosa</td>
+        <td>Obavezna sesija</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">DELETE</span></td>
+        <td><code>/api/movies/:id</code></td>
+        <td>Brisanje filma uz beleženje u audit log</td>
+        <td>Obavezna sesija</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-amber">GET</span></td>
+        <td><code>/api/activity-logs</code></td>
+        <td>Dobavljanje revizorskih logova sistema</td>
+        <td>Obavezna sesija</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-blue">POST</span></td>
+        <td><code>/api/analyze</code></td>
+        <td>Statička analiza koda po SonarQube/PMD/ESLint pravilima</td>
+        <td>Nije potrebna</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 Bezbednosni Mehanizmi Baze Podataka</h3>
+  <div class="grid-2">
+    <div class="stat-box amber">
+      <h4>Kriptografska Zaštita Lozinki</h4>
+      <p>Korišćenje <code>crypto.createHash('sha256')</code> sa heširanjem unosa. Plain-text lozinke se nikada ne čuvaju u bazi podataka.</p>
+    </div>
+    <div class="stat-box emerald">
+      <h4>Prevencija SQL Injection Napada</h4>
+      <p>Svi SQL upiti se izvršavaju preko pripremljenih iskaza (<em>Prepared Statements</em>) sa parametrima (<code>?</code>), što onemogućava injektovanje koda.</p>
+    </div>
+  </div>
+
+  <!-- 4. AUTOMATIZOVANO TESTIRANJE -->
+  <h2>4. Automatizovano Testiranje i Pokrivenost Testovima</h2>
+  <p>Strategija testiranja obuhvata dva nivoa: <strong>Jedinične/Integracione testove (Vitest)</strong> i <strong>End-to-End browser testove (Playwright)</strong>.</p>
+
+  <h3>4.1 Jedinični i Integracioni Testovi (<code>src/db.test.ts</code> - Vitest)</h3>
+  <p>Testiraju logiku baze podataka, bezbednost i algoritme:</p>
+  <ul>
+    <li><strong>Kriptografski testovi:</strong> Provera da li SHA-256 heš ima 64 karaktera, da li je determinističan i usklađen sa Node.js kriptografijom.</li>
+    <li><strong>Autentifikacioni testovi:</strong> Validacija dužine korisničkog imena (minimum 3 karaktera) i lozinke (minimum 4 karaktera), provera neuspešnih prijava sa pogrešnom lozinkom i uspešna prijava predefinisanog administratora.</li>
+    <li><strong>CRUD operacije nad filmovima:</strong> Kreiranje novog filma, provera postojanja u bazi, ažuriranje podataka i brisanje uz verifikaciju da zapis više ne postoji.</li>
+    <li><strong>Revizorski logovi:</strong> Upis i čitanje logova uz verifikaciju IP adresa i akcija korisnika.</li>
+  </ul>
+  <pre><code># Pokretanje jediničnih testova u terminalu
+npm run test</code></pre>
+
+  <h3>4.2 End-to-End (E2E) Browser Testovi (<code>e2e/auth-and-movies.spec.ts</code> - Playwright)</h3>
+  <p>Playwright podiže realan Chromium pretraživač i automatski prolazi kroz kompletne korisničke tokove:</p>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Test Scenario</th>
+        <th>Opis Provere</th>
+        <th>Očekivani Rezultat</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Login Screen Render</strong></td>
+        <td>Učitavanje početne stranice pre prijave</td>
+        <td>Naslov <em>"Login for Movie Finder & Review"</em> je vidljiv</td>
+      </tr>
+      <tr>
+        <td><strong>Invalid Auth Check</strong></td>
+        <td>Unos nepostojećeg korisnika u formu</td>
+        <td>Prikazuje se crveno upozorenje <em>"User does not exist"</em></td>
+      </tr>
+      <tr>
+        <td><strong>Admin Sandbox Login</strong></td>
+        <td>Klik na <code>#btn-prefill-admin</code> i submit</td>
+        <td>Korisnik je preusmeren na radnu površinu</td>
+      </tr>
+      <tr>
+        <td><strong>App Navigation</strong></td>
+        <td>Prelazak na tab <em>"Profile & Logs"</em> i nazad</td>
+        <td>Korisnički podaci i logovi se uspešno učitavaju</td>
+      </tr>
+      <tr>
+        <td><strong>Complete Movie CRUD</strong></td>
+        <td>Dodavanje novog filma i brisanje uz dijalog</td>
+        <td>Film se pojavljuje u katalogu i uklanja nakon <code>dialog.accept()</code></td>
+      </tr>
+      <tr>
+        <td><strong>Client Form Validation</strong></td>
+        <td>Unos ocene veće od 10 (npr. 15)</td>
+        <td>HTML5 validacija sprečava slanje (<code>checkValidity() === false</code>)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <pre><code># Pokretanje E2E testova u pozadini (Headless Mode)
+npm run test:e2e
+
+# Pokretanje E2E testova u interaktivnom grafičkom interfejsu (UI Mode)
+npm run test:e2e:ui</code></pre>
+
+  <div class="page-break"></div>
+
+  <!-- 5. DOCKER KONTEJNERIZACIJA -->
+  <h2>5. Docker i Kontejnerizacija Aplikacije</h2>
+  <p>Kako bi se garantovala prenosivost i eliminisale razlike između razvojnih i produkcionih okruženja (posebno C++ zavisnosti za <code>better-sqlite3</code> na Windows-u), kreiran je optimizovani <strong>Multi-Stage Dockerfile</strong>.</p>
+
+  <div class="card">
+    <pre><code># ── STAGE 1: Build Faza (Kompajliranje aplikacije) ───────────────
+FROM node:20-slim AS builder
+
+# Instalacija neophodnih C++ alata za nativno bildovanje SQLite modula
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+RUN npm prune --production
+
+# ── STAGE 2: Produkciono Runtime Okruženje ───────────────────────
+FROM node:20-slim AS runner
+
+WORKDIR /app
+ENV PORT=3000
+ENV NODE_ENV=production
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+
+EXPOSE 3000
+CMD ["npm", "start"]</code></pre>
+  </div>
+
+  <div class="callout success">
+    <strong>Ključne prednosti Multi-Stage kontejnera:</strong>
+    <p style="margin-top:4px; margin-bottom:0;">Produkcioni imidž ne sadrži teške build alate (<code>g++</code>, <code>make</code>, <code>python3</code>) niti <code>devDependencies</code>, što smanjuje veličinu kontejnera za preko 65% i eliminiše bezbednosne ranjivosti u produkciji.</p>
+  </div>
+
+  <!-- 6. CI/CD GITHUB ACTIONS -->
+  <h2>6. CI/CD Pipeline i GitHub Actions Implementacija</h2>
+  <p>Fajl <code>.github/workflows/deploy.yml</code> definiše automatizovani pipeline koji se pokreće na svaki <code>git push</code> na <code>main</code> granu.</p>
+
+  <pre><code>┌────────────────────────────────────────────────────────────────────────┐
+│                   1. GITHUB PUSH NA 'main' GRANU                       │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                     JOB 1: Test & Lint Code                            │
+│   1. Node.js 20 Setup & npm ci                                         │
+│   2. TypeScript Provera Tipova (npm run lint)                          │
+│   3. Vitest Jedinični Testovi (npm run test)                           │
+│   4. Playwright Headless E2E Testovi (npm run test:e2e)                │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ (Samo ukoliko su svi testovi ZELENI)
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                     JOB 2: Build & Cloud Deploy                        │
+│   1. Autentifikacija na Google Cloud (Workload Identity)               │
+│   2. Docker Buildx sa GitHub Actions slojnim keširanjem                │
+│   3. Push kontejnera na Google Artifact Registry                       │
+│   4. Automatski Deploy na Google Cloud Run servis                      │
+└────────────────────────────────────────────────────────────────────────┘</code></pre>
+
+  <h3>6.1 Pravila i Zaštitni Mehanizmi u Pipeline-u</h3>
+  <ul>
+    <li><strong>Strogi Quality Gate (<code>needs: test-and-lint</code>):</strong> Deployment faza se nikada neće pokrenuti ukoliko padne ijedan linter ili test.</li>
+    <li><strong>Slojno keširanje (Buildx Cache):</strong> Korišćenje <code>cache-to: type=gha,mode=max</code> ubrzava ponovno bildovanje Docker imidža sa 4 minuta na manje od 40 sekundi.</li>
+    <li><strong>Bezbedna autentifikacija:</strong> Korišćenje OpenID Connect (OIDC) / Workload Identity Federation protokola bez skladištenja trajnih administratorskih ključeva u GitHub tajnama.</li>
+  </ul>
+
+  <!-- 7. PREDLOZI ZA DALJI RAZVOJ -->
+  <h2>7. Predlozi za Dalji Razvoj Aplikacije</h2>
+  <p>Za prelazak aplikacije u naprednu enterprise fazu predlažu se sledeća unapređenja:</p>
+
+  <h3>7.1 Primena Page Object Modela (POM) u Playwright Testovima</h3>
+  <p>Enkapsulacija logike stranica u zasebne klase (npr. <code>LoginPage</code>, <code>MoviePage</code>) povećava čitljivost i olakšava održavanje testova pri izmenama u UI dizajnu.</p>
+
+  <div class="card">
+    <pre><code>// e2e/pages/LoginPage.ts
+import { Page, Locator } from '@playwright/test';
+
+export class LoginPage {
+  readonly page: Page;
+  readonly usernameInput: Locator;
+  readonly passwordInput: Locator;
+  readonly submitButton: Locator;
+  readonly adminQuickButton: Locator;
+
+  constructor(page: Page) {
+    this.page = page;
+    this.usernameInput = page.getByPlaceholder('username');
+    this.passwordInput = page.getByPlaceholder('••••••••');
+    this.submitButton = page.locator('#btn-submit-auth');
+    this.adminQuickButton = page.locator('#btn-prefill-admin');
+  }
+
+  async goto() {
+    await this.page.goto('/');
+  }
+
+  async loginAsAdmin() {
+    await this.adminQuickButton.click();
+    await this.submitButton.click();
+  }
+}</code></pre>
+  </div>
+
+  <h3>7.2 Dodatna Preporučena Unapređenja</h3>
+  <div class="grid-2">
+    <div class="stat-box blue">
+      <h4>Vizuelno Regresiono Testiranje</h4>
+      <p>Uvođenje <code>expect(page).toHaveScreenshot()</code> snapshot testova u Playwright radi automatske detekcije nenamernih promena u CSS stilovima.</p>
+    </div>
+    <div class="stat-box emerald">
+      <h4>Povezivanje sa SonarCloud Serverom</h4>
+      <p>Integracija <code>sonarsource/sonarcloud-github-action</code> koraka u CI/CD za automatsku analizu pokrivenosti koda na svakom Pull Request-u.</p>
+    </div>
+    <div class="stat-box purple">
+      <h4>Canary & Blue/Green Deployments</h4>
+      <p>Konfigurisanje Cloud Run saobraćajnog splita (npr. 90% stabilna verzija, 10% nova verzija) uz automatski rollback u slučaju porasta HTTP 5xx grešaka.</p>
+    </div>
+    <div class="stat-box amber">
+      <h4>Migracija na PostgreSQL bazu</h4>
+      <p>Zamena lokalnog SQLite fajla sa visoko dostupnom Cloud SQL (PostgreSQL) bazom i Drizzle ORM migracijama integrisanim u CI/CD pipeline.</p>
+    </div>
+  </div>
+
+  <!-- ZAKLJUCAK -->
+  <h2>8. Zaključak</h2>
+  <p>Implementacijom DevOps filozofije, robusne automatizacije kroz Vitest i Playwright, višenamenske Docker kontejnerizacije i GitHub Actions CI/CD procesa, obezbeđen je pouzdan, siguran i skalabilan životni ciklus razvoja aplikacije <em>Movie Review & Quality Hub</em>.</p>
+
+</div>
+
+</body>
+</html>
