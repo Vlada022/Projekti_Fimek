@@ -1,0 +1,137 @@
+@startuml
+title Movie Review & Quality Hub - Arhitektura Sistema i Domenski Model
+
+skinparam style strictuml
+skinparam defaultFontName "Arial"
+skinparam roundCorner 8
+skinparam class {
+  BackgroundColor White
+  ArrowColor #4338ca
+  BorderColor #4338ca
+}
+
+package "Persistent Data Layer (SQLite)" {
+  class User <<Entity>> {
+    - id : string
+    - username : string
+    - password_hash : string (SHA-256)
+    - role : string
+    - bio : string
+    - location : string
+    - favorite_genres : string
+    - created_at : string
+  }
+
+  class Movie <<Entity>> {
+    - id : string
+    - user_id : string
+    - title : string
+    - year : number
+    - genre : string
+    - director : string
+    - duration : string
+    - rating : number
+    - cover : string
+    - description : string
+    - created_at : string
+  }
+
+  class ActivityLog <<Entity>> {
+    - id : number
+    - user_id : string
+    - username : string
+    - action : string
+    - details : string
+    - ip_address : string
+    - timestamp : string
+  }
+
+  class CodeAnalysis <<Entity>> {
+    - id : string
+    - user_id : string
+    - code_snippet : string
+    - score : number
+    - quality_gate : string
+    - reliability_rating : string
+    - security_rating : string
+    - maintainability_rating : string
+    - technical_debt : string
+    - issues_json : string
+    - created_at : string
+  }
+}
+
+package "Backend Service Layer (src/db.ts)" {
+  class DatabaseService <<Service>> {
+    - db : Database
+    + hashPassword(password: string) : string
+    + createUser(data: NewUser) : User
+    + authenticateUser(username: string, password: string) : User
+    + getUserById(id: string) : User
+    + updateUserProfile(id: string, bio: string, location: string, genres: string) : User
+    + getAllMovies(searchQuery?: string) : Movie[]
+    + getMovieById(id: string) : Movie
+    + createMovie(userId: string, movie: MovieInput) : Movie
+    + deleteMovie(id: string) : boolean
+    + logActivity(userId: string, username: string, action: string, details: string, ip: string) : void
+    + getActivityLogs(limit?: number) : ActivityLog[]
+    + analyzeCodeQuality(code: string) : AnalysisResult
+  }
+}
+
+package "Server REST API Controllers (server.ts)" {
+  class ExpressServer <<Controller>> {
+    + POST /api/auth/register
+    + POST /api/auth/login
+    + GET /api/auth/me
+    + PUT /api/auth/profile
+    + GET /api/movies
+    + POST /api/movies
+    + DELETE /api/movies/:id
+    + GET /api/activity-logs
+    + POST /api/analyze
+  }
+}
+
+package "Frontend UI Components (src/App.tsx)" {
+  class ReactApp <<Boundary>> {
+    - user : User
+    - movies : Movie[]
+    - currentTab : string
+    + handleLogin()
+    + handleLogout()
+    + handleAddMovie()
+    + handleDeleteMovie()
+    + handleSearch()
+  }
+
+  class LoginForm <<Boundary>> {
+    - usernameInput
+    - passwordInput
+    + #btn-prefill-admin
+    + #btn-prefill-dev
+    + #btn-submit-auth
+  }
+
+  class MovieGrid <<Boundary>> {
+    + #movie-search
+    + #btn-add-movie-trigger
+    + .test-movie-card
+    + .test-btn-delete-movie
+  }
+}
+
+User "1" *-- "0..*" Movie : creates >
+User "1" *-- "0..*" ActivityLog : triggers >
+User "1" *-- "0..*" CodeAnalysis : runs >
+
+DatabaseService ..> User : CRUD
+DatabaseService ..> Movie : CRUD
+DatabaseService ..> ActivityLog : Logs
+DatabaseService ..> CodeAnalysis : Analyzes
+
+ExpressServer --> DatabaseService : calls
+ReactApp --> ExpressServer : HTTP REST
+ReactApp *-- LoginForm
+ReactApp *-- MovieGrid
+@enduml

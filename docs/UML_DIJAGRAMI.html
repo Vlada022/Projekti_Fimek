@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UML Dijagrami - Arhitektura Sistema i Okvir za Automatizaciju Testova</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    :root {
+      --primary: #4338ca;
+      --primary-light: #6366f1;
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --accent-blue: #2563eb;
+      --accent-emerald: #059669;
+      --accent-purple: #9333ea;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px;
+      font-size: 12px;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    
+    .header {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+      color: white;
+      padding: 22px 26px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 14px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    h1 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    p.lead { color: #c7d2fe; font-size: 12.5px; }
+
+    .meta-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      font-size: 11px;
+    }
+    .meta-row span { color: #a5b4fc; }
+    .meta-row strong { color: #ffffff; }
+
+    h2 {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #1e1b4b;
+      margin-top: 22px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 4px;
+      page-break-after: avoid;
+    }
+    p { margin-bottom: 8px; color: var(--text-muted); font-size: 11.5px; }
+
+    .diagram-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 18px;
+      page-break-inside: avoid;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .diagram-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e1b4b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1.5px solid #6366f1;
+      display: flex;
+      justify-content: space-between;
+    }
+    .badge {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.4;
+      border: 1px solid #1e293b;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 12px 0 18px 0;
+    }
+    .tool-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      border-left: 3px solid #6366f1;
+    }
+    .tool-box h4 { font-size: 11.5px; font-weight: 700; color: #1e1b4b; margin-bottom: 3px; }
+    .tool-box p { font-size: 10.5px; color: #64748b; margin: 0; line-height: 1.35; }
+    .tool-box code { font-size: 10px; background: #e2e8f0; padding: 1px 4px; border-radius: 3px; }
+
+    .page-break { page-break-before: always; }
+
+    @media print {
+      body { padding: 0; background: #ffffff; }
+      .container { max-width: 100%; }
+      pre, .diagram-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="tag">UML Dijagrami Specifikacija</div>
+    <h1>UML Dijagrami: Arhitektura Sistema i Okvir za Automatizaciju Testova</h1>
+    <p class="lead">Zasebna tehnička dokumentacija sa formalnim dijagramima klasa, komponenti, sekvenci i okvira za testiranje sa podrškom za besplatne UML alate (PlantUML, Mermaid, Draw.io).</p>
+    
+    <div class="meta-row">
+      <div><span>Projekat:</span> <strong>Movie Review & Quality Hub</strong></div>
+      <div><span>Dijagram 1:</span> <strong>Arhitektura & Domenski Model</strong></div>
+      <div><span>Dijagram 2:</span> <strong>Test Automation Framework</strong></div>
+      <div><span>Format:</span> <strong>PlantUML / Mermaid / Draw.io</strong></div>
+    </div>
+  </div>
+
+  <!-- BESPLATNI ALATI ZA OTVARANJE I EDITOVANJE -->
+  <h2>Besplatni Alati za Prikaz i Editovanje Dijagrama (Free UML Tools)</h2>
+  <div class="tools-grid">
+    <div class="tool-box">
+      <h4>1. Mermaid Live Editor</h4>
+      <p>Besplatan web editor bez registracije na <code>mermaid.live</code>. Podržava instant render, SVG/PNG export i deljenje dijagrama.</p>
+    </div>
+    <div class="tool-box">
+      <h4>2. PlantUML Web Server</h4>
+      <p>Otvorite kod na <code>plantuml.com/plantuml</code> ili koristite VS Code ekstenziju <em>PlantUML</em> za lokalno generisanje.</p>
+    </div>
+    <div class="tool-box">
+      <h4>3. Diagrams.net (Draw.io)</h4>
+      <p>Besplatan alat na <code>app.diagrams.net</code> (opcija <em>Arrange &gt; Insert &gt; Advanced &gt; Mermaid / PlantUML</em> za instant uvoz).</p>
+    </div>
+  </div>
+
+  <!-- DIJAGRAM 1 -->
+  <h2>1. UML Dijagram Arhitekture Sistema i Domenskog Modela</h2>
+  <p>Klasni dijagram prikazuje strukturnu podelu na entitete perzistentnog nivoa (baza), servisni sloj (<code>db.ts</code>), REST API kontrolere (<code>server.ts</code>) i klijentski React interfejs (<code>App.tsx</code>).</p>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <span>1.1 Vizuelni Strukturni Prikaz (ASCII / Box)</span>
+      <span class="badge">UML Class Diagram</span>
+    </div>
+    <pre><code>┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                          UML KLASNI DIJAGRAM APLIKACIJE (DOMAIN MODEL)                      │
+├────────────────────────────────────────┬────────────────────────────────────────────────────┤
+│  &lt;&lt;entity&gt;&gt; User                       │  &lt;&lt;entity&gt;&gt; Movie                                  │
+│  - id: string                          │  - id: string                                      │
+│  - username: string                    │  - user_id: string (FK -&gt; User.id)                 │
+│  - password_hash: string (SHA-256)     │  - title: string                                   │
+│  - role: string ("admin" | "user")     │  - year: number                                    │
+│  - bio: string                         │  - genre: string                                   │
+│  - location: string                    │  - director: string                                │
+│  - favorite_genres: string             │  - duration: string                                │
+│  - created_at: string                  │  - rating: number (1.0 - 10.0)                     │
+│                                        │  - cover: string (URL)                             │
+│                                        │  - description: string                             │
+├────────────────────────────────────────┼────────────────────────────────────────────────────┤
+│  &lt;&lt;entity&gt;&gt; ActivityLog                │  &lt;&lt;entity&gt;&gt; CodeAnalysis                           │
+│  - id: number (AutoInc)                │  - id: string                                      │
+│  - user_id: string                     │  - user_id: string                                 │
+│  - username: string                    │  - code_snippet: string                            │
+│  - action: string ("LOGIN", "CRUD")    │  - score: number (0 - 100)                         │
+│  - details: string                     │  - quality_gate: "Passed" | "Failed"               │
+│  - ip_address: string                  │  - reliability_rating: string                      │
+│  - timestamp: string                   │  - technical_debt: string                          │
+│                                        │  - issues_json: string                             │
+├────────────────────────────────────────┴────────────────────────────────────────────────────┤
+│  &lt;&lt;service&gt;&gt; DatabaseService (src/db.ts)                                                    │
+│  + hashPassword(password: string): string                                                   │
+│  + createUser(user): User                                                                   │
+│  + authenticateUser(username: string, password: string): User                               │
+│  + getAllMovies(query?: string): Movie[]                                                    │
+│  + createMovie(userId: string, movie): Movie                                                │
+│  + deleteMovie(id: string): boolean                                                         │
+│  + logActivity(userId, username, action, details, ip): void                                 │
+│  + analyzeCodeQuality(code: string): AnalysisResult                                         │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│  &lt;&lt;controller&gt;&gt; Express REST API (server.ts)                                                │
+│  + POST /api/auth/register    + POST /api/auth/login        + GET /api/auth/me              │
+│  + GET  /api/movies           + POST /api/movies            + DELETE /api/movies/:id        │
+│  + GET  /api/activity-logs    + POST /api/analyze                                           │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│  &lt;&lt;UI Components&gt;&gt; React Frontend (src/App.tsx)                                             │
+│  + LoginForm (#btn-prefill-admin)       + MovieGrid (#movie-search)                         │
+│  + AddMovieModal (#movie-title)         + AuditLogTable (#btn-nav-profile)                  │
+│  + CodeQualityAuditor (#code-editor)                                                        │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
+  RELACIJE: User (1) ── (0..*) Movie | User (1) ── (0..*) ActivityLog | DatabaseService ──&gt; DB</code></pre>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <span>1.2 PlantUML Kod (za plantuml.com ili Draw.io)</span>
+      <span class="badge">PlantUML Source</span>
+    </div>
+    <pre><code>@startuml
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor White
+  BorderColor #4338ca
+  ArrowColor #4338ca
+}
+
+class User &lt;&lt;Entity&gt;&gt; {
+  +String id
+  +String username
+  +String password_hash
+  +String role
+  +String bio
+  +String created_at
+}
+
+class Movie &lt;&lt;Entity&gt;&gt; {
+  +String id
+  +String user_id
+  +String title
+  +Integer year
+  +String genre
+  +Double rating
+}
+
+class ActivityLog &lt;&lt;Entity&gt;&gt; {
+  +Integer id
+  +String user_id
+  +String action
+  +String details
+  +String timestamp
+}
+
+class DatabaseService &lt;&lt;Service&gt;&gt; {
+  +hashPassword(password): String
+  +createUser(user): User
+  +authenticateUser(user, pass): User
+  +getAllMovies(query): Movie[]
+  +createMovie(userId, data): Movie
+  +deleteMovie(id): Boolean
+  +logActivity(userId, action): Void
+}
+
+class ExpressAPIControllers &lt;&lt;Controller&gt;&gt; {
+  +POST /api/auth/login()
+  +GET /api/movies()
+  +POST /api/movies()
+  +DELETE /api/movies/:id()
+}
+
+class ReactUI &lt;&lt;Boundary&gt;&gt; {
+  +LoginForm (#btn-prefill-admin)
+  +MovieGrid (#movie-search)
+  +AddMovieModal (#movie-title)
+}
+
+User "1" o-- "0..*" Movie : creates
+User "1" o-- "0..*" ActivityLog : logs
+DatabaseService ..&gt; User : manages
+DatabaseService ..&gt; Movie : manages
+ExpressAPIControllers --&gt; DatabaseService : invokes
+ReactUI --&gt; ExpressAPIControllers : REST HTTP
+@enduml</code></pre>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- DIJAGRAM 2 -->
+  <h2>2. UML Dijagram Okvira za Automatizaciju Testova (Test Framework)</h2>
+  <p>Prikazuje hijerarhiju testnih pogona (Vitest, Playwright), implementaciju Page Object Modela (POM), kuke životnog ciklusa i integraciju sa CI/CD pipeline-om.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <span>2.1 Arhitektura Test Okvira (Test Framework Class Model)</span>
+      <span class="badge">UML Class Diagram</span>
+    </div>
+    <pre><code>┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                       UML DIJAGRAM OKVIRA ZA AUTOMATIZACIJU TESTOVA                         │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│  &lt;&lt;CI/CD Pipeline Runner&gt;&gt; GitHubActionsWorkflow (.github/workflows/deploy.yml)             │
+│  + onPush("main"): EventTrigger                                                             │
+│  + runStage1_LintAndUnit(): Executes tsc && vitest                                          │
+│  + runStage2_PlaywrightE2E(): Bootstraps headless Chromium                                  │
+│  + evaluateQualityGate(): Requires 100% Pass -&gt; Triggers Cloud Deploy                       │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│  &lt;&lt;Unit Test Suite&gt;&gt; VitestRunner (src/db.test.ts)                                          │
+│  + test_cryptoHashDeterministic()        + test_userValidationRules()                       │
+│  + test_authRejectsInvalidPasswords()    + test_movieCRUDLifecycle()                        │
+│  + test_auditLoggingPersistence()                                                           │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│  &lt;&lt;E2E Test Suite&gt;&gt; PlaywrightE2ESuite (e2e/auth-and-movies.spec.ts)                        │
+│  + test_loginScreenRender()              + test_invalidCredentialsFeedback()                │
+│  + test_adminSandboxOneClickLogin()      + test_navigationTabsSwitching()                   │
+│  + test_completeMovieCRUDWithDialog()    + test_searchFilterRealTime()                      │
+│  + test_html5ValidationBoundary()                                                           │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│  &lt;&lt;Page Object Model&gt;&gt; Page Classes                                                         │
+│  ┌─────────────────────────────────┐   ┌──────────────────────────────────────────────────┐ │
+│  │ BasePage                        │   │ LoginPagePOM                                     │ │
+│  │ - page: Page                    │   │ - usernameInput: Locator                         │ │
+│  │ + goto(url: string)             │   │ - passwordInput: Locator                         │ │
+│  │ + expectVisible(selector)       │   │ - adminQuickBtn: Locator ("#btn-prefill-admin")  │ │
+│  │ + takeScreenshot(name)          │   │ + loginAsAdminViaSandbox(): Promise              │ │
+│  └────────────────┬────────────────┘   └─────────────────────────┬────────────────────────┘ │
+│                   │                                              │                          │
+│                   ├──────────────────────────────────────────────┤                          │
+│                   ▼                                              ▼                          │
+│  ┌─────────────────────────────────┐   ┌──────────────────────────────────────────────────┐ │
+│  │ MovieCatalogPagePOM             │   │ AddMovieModalPOM                                 │ │
+│  │ - searchInput: Locator          │   │ - titleInput: Locator ("#movie-title")           │ │
+│  │ - addTriggerBtn: Locator        │   │ - ratingInput: Locator ("#movie-rating")         │ │
+│  │ + searchMovie(query): Promise   │   │ - submitBtn: Locator ("#btn-movie-submit")       │ │
+│  │ + deleteMovie(title): Promise   │   │ + fillAndSubmit(title, rating): Promise          │ │
+│  └─────────────────────────────────┘   └──────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────────────────────────────────┤
+│  &lt;&lt;Test Lifecycle Hooks&gt;&gt;                                                                   │
+│  + beforeEach(): Izolacija sesije (klik na #btn-logout ako postoji zaostala sesija)         │
+│  + page.once('dialog'): Rukovanje native browser konfirmacijom (dialog.accept())            │
+│  + afterEach(): Generisanje izveštaja i screenshot-ova u slučaju greške                     │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <span>2.2 UML Dijagram Sekvenci: E2E Test Izvršenje (Sequence Diagram)</span>
+      <span class="badge">UML Sequence</span>
+    </div>
+    <pre><code>@startuml
+autonumber
+actor "CI Runner / QA" as QA
+participant "Playwright Engine" as Engine
+participant "Browser (Chromium)" as Browser
+participant "React Frontend" as UI
+participant "Express Backend" as Server
+database "SQLite DB" as DB
+
+QA -&gt; Engine : npm run test:e2e
+Engine -&gt; Browser : launch(headless=true)
+Browser -&gt; UI : goto("http://localhost:3000")
+UI -&gt; Browser : Render Login Form (#btn-prefill-admin)
+
+Browser -&gt; UI : Click #btn-prefill-admin &amp; #btn-submit-auth
+UI -&gt; Server : POST /api/auth/login
+Server -&gt; DB : SELECT * FROM users WHERE username='admin'
+DB --&gt; Server : User Record &amp; SHA-256 Hash
+Server --&gt; UI : HTTP 200 { success: true, user: admin }
+UI --&gt; Browser : Render Movie Catalog Dashboard
+
+Browser -&gt; UI : Click #btn-add-movie-trigger &amp; Fill Form
+UI -&gt; Server : POST /api/movies
+Server -&gt; DB : INSERT INTO movies VALUES (...)
+DB --&gt; Server : Success
+Server --&gt; UI : HTTP 201 Movie Created
+UI --&gt; Browser : Show Movie Card in DOM
+
+Browser -&gt; Browser : Register page.once('dialog', accept)
+Browser -&gt; UI : Click .test-btn-delete-movie
+UI -&gt; Browser : Show Confirm Dialog ("Are you sure?")
+Browser --&gt; UI : Accept Dialog
+UI -&gt; Server : DELETE /api/movies/:id
+Server -&gt; DB : DELETE FROM movies WHERE id=:id
+DB --&gt; Server : Success
+Server --&gt; UI : HTTP 200 { success: true }
+UI --&gt; Browser : Remove Movie Card from DOM
+Engine --&gt; QA : 8 Passed (100% Success)
+@enduml</code></pre>
+  </div>
+
+</div>
+
+</body>
+</html>

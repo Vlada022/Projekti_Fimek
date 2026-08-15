@@ -2,26 +2,20 @@ const { chromium } = require('@playwright/test');
 const path = require('path');
 const fs = require('fs');
 
-async function generatePdf() {
-  console.log('Pokretanje Chromium browsera za generisanje PDF-a...');
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-
+async function renderDocToPdf(browser, htmlFileName, pdfFileName) {
   const page = await browser.newPage();
-  const htmlPath = path.resolve(__dirname, 'docs', 'PRIMENA_DEVOPS_CICD_DOKUMENTACIJA.html');
+  const htmlPath = path.resolve(__dirname, 'docs', htmlFileName);
   const fileUrl = `file://${htmlPath}`;
 
   console.log(`Učitavanje HTML fajla: ${fileUrl}`);
   await page.goto(fileUrl, { waitUntil: 'networkidle' });
 
-  const outputPdfPath = path.resolve(__dirname, 'PRIMENA_DEVOPS_CICD_DOKUMENTACIJA.pdf');
-  const docsPdfPath = path.resolve(__dirname, 'docs', 'PRIMENA_DEVOPS_CICD_DOKUMENTACIJA.pdf');
+  const rootPdfPath = path.resolve(__dirname, pdfFileName);
+  const docsPdfPath = path.resolve(__dirname, 'docs', pdfFileName);
 
-  console.log('Generisanje PDF fajla...');
+  console.log(`Generisanje PDF-a za: ${pdfFileName}...`);
   await page.pdf({
-    path: outputPdfPath,
+    path: rootPdfPath,
     format: 'A4',
     printBackground: true,
     margin: {
@@ -32,17 +26,29 @@ async function generatePdf() {
     }
   });
 
-  // Takođe kopiramo u docs folder
-  fs.copyFileSync(outputPdfPath, docsPdfPath);
-
-  console.log(`PDF uspešno kreiran na lokacijama:`);
-  console.log(` - ${outputPdfPath}`);
-  console.log(` - ${docsPdfPath}`);
-
-  await browser.close();
+  fs.copyFileSync(rootPdfPath, docsPdfPath);
+  console.log(`PDF kreiran: ${rootPdfPath} i ${docsPdfPath}`);
+  await page.close();
 }
 
-generatePdf().catch(err => {
+async function generateAllPdfs() {
+  console.log('Pokretanje Chromium browsera za generisanje PDF dokumenata...');
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+
+  // 1. Glavna tehnička dokumentacija (bez sekcije sa dijagramima)
+  await renderDocToPdf(browser, 'PRIMENA_DEVOPS_CICD_DOKUMENTACIJA.html', 'PRIMENA_DEVOPS_CICD_DOKUMENTACIJA.pdf');
+
+  // 2. Zasebni UML Dijagrami PDF
+  await renderDocToPdf(browser, 'UML_DIJAGRAMI.html', 'UML_DIJAGRAMI.pdf');
+
+  await browser.close();
+  console.log('Svi PDF dokumenti su uspešno izgenerisani!');
+}
+
+generateAllPdfs().catch(err => {
   console.error('Greška pri generisanju PDF-a:', err);
   process.exit(1);
 });

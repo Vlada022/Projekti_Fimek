@@ -1,0 +1,92 @@
+@startuml
+title Movie Review & Quality Hub - Okvir za Automatizaciju Testova (Test Framework)
+
+skinparam style strictuml
+skinparam defaultFontName "Arial"
+skinparam roundCorner 8
+skinparam class {
+  BackgroundColor White
+  ArrowColor #059669
+  BorderColor #059669
+}
+
+package "CI/CD Orchestration" {
+  class GitHubActionsWorkflow {
+    + onPush_main()
+    + runStage1_LintAndVitest()
+    + runStage2_PlaywrightE2E()
+    + evaluateQualityGate() : boolean
+  }
+}
+
+package "Unit Test Layer (Vitest)" {
+  class VitestSuite {
+    + test_sha256Deterministic()
+    + test_userRegistrationRejectsShortInput()
+    + test_authRejectsInvalidPassword()
+    + test_movieCRUD()
+    + test_activityLogging()
+  }
+}
+
+package "E2E Test Layer (Playwright)" {
+  class PlaywrightSuite {
+    + test_loginScreen()
+    + test_invalidCredentialsFeedback()
+    + test_adminSandboxOneClickLogin()
+    + test_navigationTabs()
+    + test_completeMovieCRUDWithDialog()
+    + test_searchFilterRealTime()
+    + test_html5Validation()
+  }
+
+  abstract class BasePage {
+    # page : Page
+    + goto(url: string)
+    + expectVisible(selector: string)
+    + takeScreenshot(name: string)
+  }
+
+  class LoginPagePOM {
+    - usernameInput : Locator
+    - passwordInput : Locator
+    - adminQuickBtn : Locator ("#btn-prefill-admin")
+    - submitBtn : Locator ("#btn-submit-auth")
+    + loginAsAdminViaSandbox()
+    + loginWithCredentials(user, pass)
+  }
+
+  class MovieCatalogPOM {
+    - searchInput : Locator ("#movie-search")
+    - addTriggerBtn : Locator ("#btn-add-movie-trigger")
+    - movieCards : Locator (".test-movie-card")
+    - deleteBtn : Locator (".test-btn-delete-movie")
+    + searchMovie(query: string)
+    + deleteMovieWithDialog(title: string)
+  }
+
+  class AddMovieModalPOM {
+    - titleInput : Locator ("#movie-title")
+    - ratingInput : Locator ("#movie-rating")
+    - submitBtn : Locator ("#btn-movie-submit")
+    + fillAndSubmit(title: string, rating: number)
+  }
+
+  class TestHooks {
+    + beforeEach() : Session Isolation
+    + handleDialog() : dialog.accept()
+    + afterEach() : Failure Screenshot
+  }
+}
+
+GitHubActionsWorkflow --> VitestSuite : runs
+GitHubActionsWorkflow --> PlaywrightSuite : runs
+PlaywrightSuite --> TestHooks : uses
+PlaywrightSuite --> LoginPagePOM : executes
+PlaywrightSuite --> MovieCatalogPOM : executes
+PlaywrightSuite --> AddMovieModalPOM : executes
+
+LoginPagePOM --|> BasePage
+MovieCatalogPOM --|> BasePage
+AddMovieModalPOM --|> BasePage
+@enduml
